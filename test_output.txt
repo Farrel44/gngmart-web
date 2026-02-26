@@ -1,0 +1,70 @@
+
+   FAIL  Tests\Feature\CartTest
+  Γ£ô guest cannot access cart                                                            12.81s  
+  Γ£ô guest cannot add to cart                                                             0.13s  
+  Γ£ô user can view empty cart                                                             4.09s  
+  Γ£ô user can view cart with items                                                        1.20s  
+  Γ£ô user can add product to cart                                                         1.86s  
+  Γ¿» adding same product increments quantity                                              0.75s  
+  Γ£ô cannot add more than stock                                                           0.20s  
+  Γ¿» cannot add if total exceeds stock                                                    0.41s  
+  Γ£ô cannot add nonexistent product                                                       0.53s  
+  Γ£ô user can update quantity                                                             0.27s  
+  Γ£ô cannot update quantity exceeding stock                                               0.26s  
+  Γ£ô user can remove item                                                                 0.61s  
+  Γ£ô user can clear cart                                                                  0.34s  
+  Γ£ô cannot access other user cart item                                                   1.36s  
+  Γ£ô cannot delete other user cart item                                                   0.40s  
+  Γ£ô cart uses discount price for subtotal                                                0.16s  
+  Γ£ô cart uses normal price when no discount                                              0.12s  
+  Γ£ô cart total items calculation                                                         0.13s  
+  Γ£ô cart total price calculation                                                         0.10s  
+  ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ  
+   FAILED  Tests\Feature\CartTest > adding same product increments quantity                     
+  Failed asserting that a row in the table [cart_items] matches the attributes {
+    "product_id": 6,
+    "quantity": 5
+}.
+
+Found similar results: [
+    {
+        "product_id": 6,
+        "quantity": 2
+    },
+    {
+        "product_id": 6,
+        "quantity": 3
+    }
+].
+
+  at tests\Feature\CartTest.php:120
+    116Γûò 
+    117Γûò         $response->assertRedirect(route('cart.index'));
+    118Γûò 
+    119Γûò         // Verifikasi quantity bertambah (2 + 3 = 5)
+  Γ₧£ 120Γûò         $this->assertDatabaseHas('cart_items', [
+    121Γûò             'product_id' => $this->product->id,
+    122Γûò             'quantity' => 5,
+    123Γûò         ]);
+    124Γûò
+
+  ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ  
+   FAILED  Tests\Feature\CartTest > cannot add if total exceeds stock                           
+  Session is missing expected key [errors].
+Failed asserting that false is true.
+
+  at tests\Feature\CartTest.php:155
+    151Γûò             'product_id' => $this->product->id,
+    152Γûò             'quantity' => 5,
+    153Γûò         ]);
+    154Γûò 
+  Γ₧£ 155Γûò         $response->assertSessionHasErrors('quantity');
+    156Γûò 
+    157Γûò         // Quantity tetap 8
+    158Γûò         $this->assertDatabaseHas('cart_items', [
+    159Γûò             'product_id' => $this->product->id,
+
+
+  Tests:    2 failed, 17 passed (46 assertions)
+  Duration: 26.13s
+

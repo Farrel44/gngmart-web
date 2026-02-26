@@ -15,9 +15,14 @@ return new class extends Migration
             $table->id();
             $table->foreignId('category_id')->constrained()->onDelete('cascade');
             $table->string('name');
+            $table->string('slug')->unique();               // URL-friendly slug untuk SEO
             $table->text('description')->nullable();
             $table->decimal('price', 10, 2);
+            $table->decimal('discount_price', 10, 2)->nullable(); // Harga diskon (jika ada)
             $table->integer('stock')->default(0);
+            $table->string('meta_title')->nullable();        // Judul halaman untuk SEO
+            $table->text('meta_description')->nullable();    // Deskripsi meta untuk SEO
+            $table->string('meta_keywords')->nullable();     // Kata kunci meta untuk SEO
             $table->timestamps();
         });
     }

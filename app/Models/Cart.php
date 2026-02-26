@@ -30,4 +30,29 @@ class Cart extends Model
     {
         return $this->hasMany(CartItem::class);
     }
+
+    /**
+     * Hitung total harga semua items di cart.
+     * Menggunakan effective price (discount jika ada).
+     */
+    public function getTotalPrice(): float
+    {
+        return $this->items->sum(fn (CartItem $item) => $item->getSubtotal());
+    }
+
+    /**
+     * Hitung total jumlah items (sum of quantities).
+     */
+    public function getTotalItems(): int
+    {
+        return $this->items->sum('quantity');
+    }
+
+    /**
+     * Kosongkan cart dengan menghapus semua items.
+     */
+    public function clear(): void
+    {
+        $this->items()->delete();
+    }
 }

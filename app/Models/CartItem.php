@@ -16,6 +16,13 @@ class CartItem extends Model
         'quantity',
     ];
 
+    protected function casts(): array
+    {
+        return [
+            'quantity' => 'integer',
+        ];
+    }
+
     /**
      * Relasi: cart item milik satu cart
      */
@@ -30,5 +37,14 @@ class CartItem extends Model
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
+    }
+
+    /**
+     * Hitung subtotal item (quantity × effective price).
+     * Pakai discount price jika ada, otherwise harga normal.
+     */
+    public function getSubtotal(): float
+    {
+        return $this->quantity * $this->product->getEffectivePrice();
     }
 }
