@@ -1,59 +1,84 @@
-<x-guest-layout>
-    <form method="POST" action="{{ route('register') }}">
-        @csrf
+@extends('layouts.app')
 
-        <!-- Name -->
-        <div>
-            <x-input-label for="name" :value="__('Name')" />
-            <x-text-input id="name" class="block mt-1 w-full" type="text" name="name" :value="old('name')" required autofocus autocomplete="name" />
-            <x-input-error :messages="$errors->get('name')" class="mt-2" />
-        </div>
+@section('content')
 
-        <!-- Phone -->
-        <div class="mt-4">
-            <x-input-label for="phone" :value="__('Phone')" />
-            <x-text-input id="phone" class="block mt-1 w-full" type="tel" name="phone" :value="old('phone')" required autocomplete="tel" />
-            <x-input-error :messages="$errors->get('phone')" class="mt-2" />
-        </div>
+<div class="h-[calc(100vh-64px)] flex items-center justify-center bg-gray-100">
 
-        <!-- Email Address -->
-        <div class="mt-4">
-            <x-input-label for="email" :value="__('Email')" />
-            <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required autocomplete="username" />
-            <x-input-error :messages="$errors->get('email')" class="mt-2" />
-        </div>
+    <div class="w-full max-w-md bg-white rounded-2xl shadow-lg p-8">
 
-        <!-- Password -->
-        <div class="mt-4">
-            <x-input-label for="password" :value="__('Password')" />
+        <h2 class="text-center text-xl font-semibold mb-2">
+            Daftar
+        </h2>
 
-            <x-text-input id="password" class="block mt-1 w-full"
-                            type="password"
-                            name="password"
-                            required autocomplete="new-password" />
-
-            <x-input-error :messages="$errors->get('password')" class="mt-2" />
-        </div>
-
-        <!-- Confirm Password -->
-        <div class="mt-4">
-            <x-input-label for="password_confirmation" :value="__('Confirm Password')" />
-
-            <x-text-input id="password_confirmation" class="block mt-1 w-full"
-                            type="password"
-                            name="password_confirmation" required autocomplete="new-password" />
-
-            <x-input-error :messages="$errors->get('password_confirmation')" class="mt-2" />
-        </div>
-
-        <div class="flex items-center justify-end mt-4">
-            <a class="underline text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800" href="{{ route('login') }}">
-                {{ __('Already registered?') }}
+        <p class="text-center text-sm text-gray-600 mb-6">
+            Sudah punya akun?
+            <a href="{{ route('login') }}" class="text-red-600 font-semibold">
+                Masuk
             </a>
+        </p>
 
-            <x-primary-button class="ms-4">
-                {{ __('Register') }}
-            </x-primary-button>
-        </div>
-    </form>
-</x-guest-layout>
+        <form method="POST" action="{{ route('register') }}">
+            @csrf
+
+            <!-- Nama -->
+            <div class="mb-4">
+                <label class="block text-sm mb-1">
+                    Nama
+                </label>
+                <input type="text" name="name"
+                    class="w-full bg-gray-100 border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-red-500 focus:outline-none"
+                    required>
+            </div>
+
+            <!-- No Telepon -->
+            <div class="mb-4">
+                <label class="block text-sm mb-1">
+                    No. Telepon
+                </label>
+                <input type="text" name="phone"
+                    class="w-full bg-gray-100 border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-red-500 focus:outline-none"
+                    required>
+            </div>
+
+            <!-- Email -->
+            <div class="mb-4">
+                <label class="block text-sm mb-1">
+                    Email
+                </label>
+                <input type="email" name="email"
+                    class="w-full bg-gray-100 border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-red-500 focus:outline-none"
+                    required>
+            </div>
+
+            <!-- Password -->
+            <div class="mb-4">
+                <label class="block text-sm mb-1">
+                    Password
+                </label>
+                <input type="password" name="password"
+                    class="w-full bg-gray-100 border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-red-500 focus:outline-none"
+                    required>
+            </div>
+
+            <!-- Konfirmasi Password -->
+            <div class="mb-6">
+                <label class="block text-sm mb-1">
+                    Konfirmasi Password
+                </label>
+                <input type="password" name="password_confirmation"
+                    class="w-full bg-gray-100 border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-red-500 focus:outline-none"
+                    required>
+            </div>
+
+            <button type="submit"
+                class="w-full bg-red-600 text-white py-2 rounded-lg hover:bg-red-700 transition">
+                Daftar
+            </button>
+
+        </form>
+
+    </div>
+
+</div>
+
+@endsection
