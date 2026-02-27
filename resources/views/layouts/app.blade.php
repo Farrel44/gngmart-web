@@ -14,8 +14,10 @@
         <div class="flex items-center justify-between h-16">
 
             <!-- Logo -->
-            <a href="{{ url('/') }}" class="text-2xl font-bold text-red-600">
-                GnG Mart
+            <a href="{{ url('/') }}" class="flex items-center">
+            <img src="{{ asset('images/logo.png') }}"
+            alt="GnG Mart"
+            class="h-14 w-auto object-contain">
             </a>
 
             <!-- Search -->

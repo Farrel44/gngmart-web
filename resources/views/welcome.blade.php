@@ -20,32 +20,67 @@
     </div>
 
     <h2 class="text-2xl font-bold text-gray-800 mb-6">
-        Kategori Favorit
-    </h2>
+    Kategori
+</h2>
 
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-14">
+<div class="flex gap-4 overflow-x-auto pb-4 mb-12">
 
-        <div class="bg-white rounded-2xl shadow hover:shadow-lg p-6 text-center">
-            <div class="text-4xl mb-3">🥤</div>
-            <p class="font-semibold text-gray-800">Minuman</p>
+    <div class="flex items-center gap-3 bg-red-50 hover:bg-red-100 transition px-5 py-3 rounded-full min-w-max cursor-pointer">
+        <div class="w-8 h-8 flex items-center justify-center bg-red-100 text-red-500 rounded-full">
+            🍔
         </div>
-
-        <div class="bg-white rounded-2xl shadow hover:shadow-lg p-6 text-center">
-            <div class="text-4xl mb-3">🍜</div>
-            <p class="font-semibold text-gray-800">Makanan Instan</p>
-        </div>
-
-        <div class="bg-white rounded-2xl shadow hover:shadow-lg p-6 text-center">
-            <div class="text-4xl mb-3">🧴</div>
-            <p class="font-semibold text-gray-800">Perawatan</p>
-        </div>
-
-        <div class="bg-white rounded-2xl shadow hover:shadow-lg p-6 text-center">
-            <div class="text-4xl mb-3">🧼</div>
-            <p class="font-semibold text-gray-800">Kebutuhan Rumah</p>
-        </div>
-
+        <span class="text-sm font-semibold text-gray-700">
+            Makanan & Minuman
+        </span>
     </div>
+
+    <div class="flex items-center gap-3 bg-red-50 hover:bg-red-100 transition px-5 py-3 rounded-full min-w-max cursor-pointer">
+        <div class="w-8 h-8 flex items-center justify-center bg-red-100 text-red-500 rounded-full">
+            🏠
+        </div>
+        <span class="text-sm font-semibold text-gray-700">
+            Kebutuhan Rumah Tangga
+        </span>
+    </div>
+
+    <div class="flex items-center gap-3 bg-red-50 hover:bg-red-100 transition px-5 py-3 rounded-full min-w-max cursor-pointer">
+        <div class="w-8 h-8 flex items-center justify-center bg-red-100 text-red-500 rounded-full">
+            👜
+        </div>
+        <span class="text-sm font-semibold text-gray-700">
+            Aksesoris
+        </span>
+    </div>
+
+    <div class="flex items-center gap-3 bg-red-50 hover:bg-red-100 transition px-5 py-3 rounded-full min-w-max cursor-pointer">
+        <div class="w-8 h-8 flex items-center justify-center bg-red-100 text-red-500 rounded-full">
+            📚
+        </div>
+        <span class="text-sm font-semibold text-gray-700">
+            Alat Tulis
+        </span>
+    </div>
+
+    <div class="flex items-center gap-3 bg-red-50 hover:bg-red-100 transition px-5 py-3 rounded-full min-w-max cursor-pointer">
+        <div class="w-8 h-8 flex items-center justify-center bg-red-100 text-red-500 rounded-full">
+            💊
+        </div>
+        <span class="text-sm font-semibold text-gray-700">
+            Kesehatan
+        </span>
+    </div>
+
+    <div class="flex items-center gap-3 bg-red-50 hover:bg-red-100 transition px-5 py-3 rounded-full min-w-max cursor-pointer">
+        <div class="w-8 h-8 flex items-center justify-center bg-red-100 text-red-500 rounded-full">
+            💄
+        </div>
+        <span class="text-sm font-semibold text-gray-700">
+            Kecantikan
+        </span>
+    </div>
+
+</div>
+
 
     <h2 class="text-2xl font-bold text-gray-800 mb-6">
         Produk Terbaru
