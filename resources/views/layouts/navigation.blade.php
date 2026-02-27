@@ -1,11 +1,26 @@
 <nav class="flex justify-between items-center px-8 py-4 bg-slate-900 text-white shadow-md">
 
     <div class="text-xl font-bold">
-        GnG Mart
+        <a href="{{ route('home') }}">GnG Mart</a>
     </div>
 
     <div class="flex gap-4 items-center">
+        {{-- Navigation Links --}}
+        <a href="{{ route('products.index') }}" class="hover:text-gray-300 transition-colors">
+            Produk
+        </a>
+
         @auth
+            <a href="{{ route('cart.index') }}" class="hover:text-gray-300 transition-colors">
+                Keranjang
+            </a>
+
+            <a href="{{ route('orders.index') }}" class="hover:text-gray-300 transition-colors">
+                Pesanan
+            </a>
+
+            <span class="font-medium text-gray-300">|</span>
+
             <span class="font-medium">
                 Halo, {{ auth()->user()->name }}
             </span>

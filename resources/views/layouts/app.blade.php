@@ -35,11 +35,19 @@
             <!-- Right Menu -->
             <div class="flex items-center gap-6">
 
-                <!-- Cart -->
-                <a href="#" class="flex items-center gap-1 hover:text-red-600 transition">
-                    <span class="text-xl">🛒</span>
-                    <span class="text-sm font-medium">Keranjang</span>
-                </a>
+                @auth
+                    <!-- Cart -->
+                    <a href="{{ route('cart.index') }}" class="flex items-center gap-1 hover:text-red-600 transition">
+                        <span class="text-xl">🛒</span>
+                        <span class="text-sm font-medium">Keranjang</span>
+                    </a>
+
+                    <!-- Orders -->
+                    <a href="{{ route('orders.index') }}" class="flex items-center gap-1 hover:text-red-600 transition">
+                        <span class="text-xl">📦</span>
+                        <span class="text-sm font-medium">Pesanan</span>
+                    </a>
+                @endauth
 
                 <!-- Guest -->
                 @guest

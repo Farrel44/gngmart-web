@@ -3,6 +3,8 @@
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\OrderController;
+use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
@@ -56,19 +58,24 @@ Route::middleware('auth')->group(function () {
 
     /*
     |--------------------------------------------------------------------------
-    | Payment Routes (Placeholder - Phase 8)
+    | Payment Routes
     |--------------------------------------------------------------------------
-    | Route sementara untuk redirect setelah checkout.
-    | Akan diimplementasi lengkap di Phase 8.
+    | Flow: Checkout → Payment Method → Order History
+    | User memilih metode bayar dan upload bukti (jika transfer/ewallet).
     */
-    Route::get('/orders/{order}/payment', function (\App\Models\Order $order) {
-        // Pastikan order milik user yang login
-        if ($order->user_id !== auth()->id()) {
-            abort(403);
-        }
-        // Placeholder: tampilkan info order sementara
-        return view('orders.payment-placeholder', compact('order'));
-    })->name('payment.create');
+    Route::get('/orders/{order}/payment', [PaymentController::class, 'create'])->name('payment.create');
+    Route::post('/orders/{order}/payment', [PaymentController::class, 'store'])->name('payment.store');
+
+    /*
+    |--------------------------------------------------------------------------
+    | Order Routes
+    |--------------------------------------------------------------------------
+    | Order history dan detail pesanan untuk user.
+    | Cancel hanya bisa dilakukan jika status masih pending.
+    */
+    Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
+    Route::get('/orders/{order}', [OrderController::class, 'show'])->name('orders.show');
+    Route::delete('/orders/{order}', [OrderController::class, 'cancel'])->name('orders.cancel');
 });
 
 require __DIR__.'/auth.php';
