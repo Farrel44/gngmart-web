@@ -1,144 +1,290 @@
-{{--
-    Landing Page / Home
-    
-    Entry point untuk pengunjung. Menampilkan:
-    - Hero section dengan CTA
-    - Grid kategori untuk quick access
-    - Produk unggulan (terbaru dengan stok tersedia)
---}}
+@extends('layouts.app')
 
-<x-layouts.public>
-    <x-slot name="title">GNGMart - Belanja Online Terpercaya</x-slot>
+@section('content')
 
-    {{-- Hero Section --}}
-    <section class="bg-gradient-to-r from-indigo-600 to-purple-600 text-white">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24">
-            <div class="text-center">
-                <h1 class="text-4xl md:text-5xl font-bold tracking-tight">
-                    Selamat Datang di GNGMart
+<div class="max-w-screen-xl mx-auto px-6">
+
+    <!-- Carousel Banner -->
+    <div class="relative rounded-3xl mb-12 shadow-lg overflow-hidden mt-20" id="carousel">
+        <!-- Slides -->
+        <div class="carousel-container relative h-64">
+            <!-- Slide 1 -->
+            <div class="carousel-slide absolute inset-0 rounded-3xl p-10 text-white bg-gradient-to-r from-red-500 to-red-300 flex flex-col justify-center transition-opacity duration-500 opacity-100"
+                 style="transition: opacity 0.5s ease-in-out;">
+                <h1 class="text-3xl font-bold mb-3">
+                    Paket Keluarga Hemat Minggu Ini!
                 </h1>
-                <p class="mt-4 text-lg md:text-xl text-indigo-100 max-w-2xl mx-auto">
-                    Temukan berbagai produk berkualitas dengan harga terbaik. 
-                    Belanja mudah, cepat, dan terpercaya.
+
+                <p class="text-lg mb-6">
+                    Belanja lebih banyak, hemat lebih banyak!
                 </p>
-                <div class="mt-8 flex flex-col sm:flex-row justify-center gap-4">
-                    <a href="{{ route('products.index') }}" 
-                       class="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-lg text-indigo-700 bg-white hover:bg-indigo-50 transition-colors">
-                        Lihat Katalog
-                        <svg class="ml-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                        </svg>
-                    </a>
-                    @guest
-                        <a href="{{ route('register') }}" 
-                           class="inline-flex items-center justify-center px-6 py-3 border-2 border-white text-base font-medium rounded-lg text-white hover:bg-white hover:text-indigo-700 transition-colors">
-                            Daftar Sekarang
-                        </a>
-                    @endguest
-                </div>
+
+                <a href="#"
+                   class="bg-white text-red-500 font-semibold px-6 py-3 rounded-full hover:bg-gray-200 transition w-fit">
+                    Lihat Promo →
+                </a>
+            </div>
+
+            <!-- Slide 2 -->
+            <div class="carousel-slide absolute inset-0 rounded-3xl p-10 text-white bg-gradient-to-r from-orange-500 to-orange-300 flex flex-col justify-center transition-opacity duration-500 opacity-0"
+                 style="transition: opacity 0.5s ease-in-out;">
+                <h1 class="text-3xl font-bold mb-3">
+                    Diskon Spesial Buah Segar!
+                </h1>
+
+                <p class="text-lg mb-6">
+                    Dapatkan potongan hingga 40% untuk semua buah pilihan!
+                </p>
+
+                <a href="#"
+                   class="bg-white text-orange-500 font-semibold px-6 py-3 rounded-full hover:bg-gray-200 transition w-fit">
+                    Belanja Sekarang →
+                </a>
+            </div>
+
+            <!-- Slide 3 -->
+            <div class="carousel-slide absolute inset-0 rounded-3xl p-10 text-white bg-gradient-to-r from-rose-500 to-pink-400 flex flex-col justify-center transition-opacity duration-500 opacity-0"
+                 style="transition: opacity 0.5s ease-in-out;">
+                <h1 class="text-3xl font-bold mb-3">
+                    Promo Member Eksklusif!
+                </h1>
+
+                <p class="text-lg mb-6">
+                    Nikmati keuntungan menjadi member setia kami dengan cashback menarik.
+                </p>
+
+                <a href="#"
+                   class="bg-white text-rose-500 font-semibold px-6 py-3 rounded-full hover:bg-gray-200 transition w-fit">
+                    Daftar Sekarang →
+                </a>
             </div>
         </div>
-    </section>
 
-    {{-- Category Section --}}
-    @if($categories->isNotEmpty())
-        <section class="py-12 md:py-16">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="text-center mb-10">
-                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">
-                        Belanja Berdasarkan Kategori
-                    </h2>
-                    <p class="mt-2 text-gray-600 dark:text-gray-400">
-                        Pilih kategori untuk menemukan produk yang Anda cari
-                    </p>
-                </div>
+        <!-- Dots Indicator -->
+        <div class="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2">
+            <button class="carousel-dot w-3 h-3 rounded-full bg-red-600 transition-all cursor-pointer" data-index="0"></button>
+            <button class="carousel-dot w-3 h-3 rounded-full bg-gray-300 transition-all cursor-pointer" data-index="1"></button>
+            <button class="carousel-dot w-3 h-3 rounded-full bg-gray-300 transition-all cursor-pointer" data-index="2"></button>
+        </div>
+    </div>
 
-                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                    @foreach($categories as $category)
-                        <a href="{{ route('products.index', ['category' => $category->id]) }}" 
-                           class="group flex flex-col items-center p-4 bg-white dark:bg-gray-800 rounded-lg shadow-sm hover:shadow-md transition-shadow">
-                            {{-- Category icon placeholder --}}
-                            <div class="w-16 h-16 bg-indigo-100 dark:bg-indigo-900/50 rounded-full flex items-center justify-center mb-3 group-hover:bg-indigo-200 dark:group-hover:bg-indigo-800 transition-colors">
-                                <svg class="w-8 h-8 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                                </svg>
-                            </div>
-                            <h3 class="text-sm font-medium text-gray-900 dark:text-white text-center group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
-                                {{ $category->name }}
-                            </h3>
-                            <span class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                {{ $category->products_count }} produk
-                            </span>
-                        </a>
-                    @endforeach
-                </div>
+    <script>
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.carousel-slide');
+        const dots = document.querySelectorAll('.carousel-dot');
+        const totalSlides = slides.length;
+
+        function showSlide(index) {
+            // Hide all slides
+            slides.forEach(slide => {
+                slide.classList.remove('opacity-100');
+                slide.classList.add('opacity-0');
+            });
+
+            // Remove active dot style
+            dots.forEach(dot => {
+                dot.classList.remove('bg-red-600');
+                dot.classList.add('bg-gray-300');
+            });
+
+            // Show current slide
+            slides[index].classList.remove('opacity-0');
+            slides[index].classList.add('opacity-100');
+
+            // Highlight current dot
+            dots[index].classList.remove('bg-gray-300');
+            dots[index].classList.add('bg-red-600');
+        }
+
+        function nextSlide() {
+            currentSlide = (currentSlide + 1) % totalSlides;
+            showSlide(currentSlide);
+        }
+
+        // Dot click handlers
+        dots.forEach((dot, index) => {
+            dot.addEventListener('click', () => {
+                currentSlide = index;
+                showSlide(currentSlide);
+            });
+        });
+
+        // Auto rotate every 5 seconds
+        setInterval(nextSlide, 5000);
+    </script>
+
+    <h2 class="text-2xl font-bold text-gray-800 mb-6">
+    Kategori
+</h2>
+
+<div class="flex gap-4 overflow-x-auto pb-4 mb-12">
+
+    <div class="flex items-center gap-3 bg-red-50 hover:bg-red-100 transition px-5 py-3 rounded-full min-w-max cursor-pointer">
+        <div class="w-8 h-8 flex items-center justify-center bg-red-100 text-red-500 rounded-full">
+            🍔
+        </div>
+        <span class="text-sm font-semibold text-gray-700">
+            Makanan & Minuman
+        </span>
+    </div>
+
+    <div class="flex items-center gap-3 bg-red-50 hover:bg-red-100 transition px-5 py-3 rounded-full min-w-max cursor-pointer">
+        <div class="w-8 h-8 flex items-center justify-center bg-red-100 text-red-500 rounded-full">
+            🏠
+        </div>
+        <span class="text-sm font-semibold text-gray-700">
+            Kebutuhan Rumah Tangga
+        </span>
+    </div>
+
+    <div class="flex items-center gap-3 bg-red-50 hover:bg-red-100 transition px-5 py-3 rounded-full min-w-max cursor-pointer">
+        <div class="w-8 h-8 flex items-center justify-center bg-red-100 text-red-500 rounded-full">
+            👜
+        </div>
+        <span class="text-sm font-semibold text-gray-700">
+            Aksesoris
+        </span>
+    </div>
+
+    <div class="flex items-center gap-3 bg-red-50 hover:bg-red-100 transition px-5 py-3 rounded-full min-w-max cursor-pointer">
+        <div class="w-8 h-8 flex items-center justify-center bg-red-100 text-red-500 rounded-full">
+            📚
+        </div>
+        <span class="text-sm font-semibold text-gray-700">
+            Alat Tulis
+        </span>
+    </div>
+
+    <div class="flex items-center gap-3 bg-red-50 hover:bg-red-100 transition px-5 py-3 rounded-full min-w-max cursor-pointer">
+        <div class="w-8 h-8 flex items-center justify-center bg-red-100 text-red-500 rounded-full">
+            💊
+        </div>
+        <span class="text-sm font-semibold text-gray-700">
+            Kesehatan
+        </span>
+    </div>
+
+    <div class="flex items-center gap-3 bg-red-50 hover:bg-red-100 transition px-5 py-3 rounded-full min-w-max cursor-pointer">
+        <div class="w-8 h-8 flex items-center justify-center bg-red-100 text-red-500 rounded-full">
+            💄
+        </div>
+        <span class="text-sm font-semibold text-gray-700">
+            Kecantikan
+        </span>
+    </div>
+
+</div>
+
+
+    <div class="flex items-center justify-between mb-6">
+    <h2 class="text-2xl font-bold text-gray-800">
+        Rekomendasi Mingguan
+    </h2>
+    <a href="#" class="text-blue-600 text-sm font-semibold hover:underline">
+        Lihat Semua
+    </a>
+</div>
+
+<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6 mb-20">
+
+    @php
+        $products = [
+            ['image'=>'apel.png','label'=>'SEGAR','name'=>'Apel Fuji Premium','weight'=>'1 kg','price'=>'45.000'],
+            ['image'=>'susu.png','label'=>'SEGAR','name'=>'Susu Segar Ultra','weight'=>'1 Liter','price'=>'18.500'],
+            ['image'=>'roti.png','label'=>'PROMO','name'=>'Roti Gandum Sehat','weight'=>'500 g','price'=>'22.000'],
+            ['image'=>'ayam.png','label'=>'SEGAR','name'=>'Daging Ayam Fillet','weight'=>'500 g','price'=>'35.000'],
+            ['image'=>'jusjeruk.png','label'=>'MINUMAN','name'=>'Jus Jeruk Segar','weight'=>'250 ml','price'=>'25.000'],
+            ['image'=>'cookies.png','label'=>'PROMO','name'=>'Cookies Cokelat Chip','weight'=>'300 g','price'=>'28.500'],
+            ['image'=>'tomat.png','label'=>'SEGAR','name'=>'Tomat Segar Organik','weight'=>'500 g','price'=>'15.000'],
+            ['image'=>'yogurt.png','label'=>'SEGAR','name'=>'Yogurt Greek Plain','weight'=>'450 g','price'=>'32.000'],
+            ['image'=>'mie.png','label'=>'PROMO','name'=>'Mi Instan Goreng','weight'=>'5 pcs','price'=>'12.500'],
+            ['image'=>'salmon.png','label'=>'SEGAR','name'=>'Salmon Fillet Segar','weight'=>'300 g','price'=>'85.000'],
+            ['image'=>'tehhijau.png','label'=>'MINUMAN','name'=>'Teh Hijau Botol','weight'=>'500 ml','price'=>'8.500'],
+            ['image'=>'chips.png','label'=>'PROMO','name'=>'Keripik Kentang BBQ','weight'=>'150 g','price'=>'16.000'],
+        ];
+    @endphp
+
+    @foreach($products as $product)
+    <div class="bg-white rounded-2xl shadow-sm hover:shadow-md transition p-4">
+
+        <img src="{{ Str::startsWith($product['image'], ['http://','https://']) ? $product['image'] : asset('images/products/' . $product['image']) }}" 
+             alt="{{ $product['name'] }}"
+             class="h-32 w-full object-cover rounded-xl mb-4 bg-gray-200">
+
+        <span class="text-xs font-bold 
+            {{ $product['label'] == 'PROMO' ? 'text-orange-500' : 
+               ($product['label'] == 'MINUMAN' ? 'text-blue-500' : 'text-green-500') }}">
+            {{ $product['label'] }}
+        </span>
+
+        <h3 class="font-semibold text-gray-800 text-sm mt-1">
+            {{ $product['name'] }}
+        </h3>
+
+        <p class="text-xs text-gray-500 mb-2">
+            {{ $product['weight'] }}
+        </p>
+
+        <p class="text-green-600 font-bold mb-3">
+            Rp {{ $product['price'] }}
+        </p>
+
+        <button class="w-full bg-red-600 text-white py-2 rounded-full text-sm hover:bg-red-700 transition">
+            Beli
+        </button>
+
+    </div>
+    @endforeach
+
+</div>
+
+    <!-- Promo Section -->
+    <div class="max-w-screen-xl mx-auto px-6 mt-16">
+        <div class="relative bg-gradient-to-r from-green-300 via-green-400 to-green-500 rounded-3xl p-12 flex flex-col md:flex-row items-center">
+            <div class="flex-1 pr-8">
+                <h2 class="text-3xl font-bold text-gray-800 mb-4">Hemat 30% untuk Produk Organik!</h2>
+                <p class="text-gray-600 mb-6">Nikmati kesegaran alami dengan harga spesial minggu ini</p>
+                <a href="#" class="inline-block bg-red-600 text-white px-6 py-3 rounded-full hover:bg-red-700 transition">
+                    Belanja Sekarang
+                </a>
             </div>
-        </section>
-    @endif
+            <!-- image overlaps outside green box -->
+            <img src="{{ asset('images/sayur.png') }}" alt="Promo Organik" class="absolute right-0 top-0 h-full w-auto max-w-md rounded-2xl object-cover">
+        </div>
+    </div>
 
-    {{-- Featured Products Section --}}
-    @if($featuredProducts->isNotEmpty())
-        <section class="py-12 md:py-16 bg-white dark:bg-gray-800">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="flex justify-between items-center mb-10">
-                    <div>
-                        <h2 class="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">
-                            Produk Terbaru
-                        </h2>
-                        <p class="mt-2 text-gray-600 dark:text-gray-400">
-                            Produk-produk terbaru yang tersedia di toko kami
-                        </p>
-                    </div>
-                    <a href="{{ route('products.index') }}" 
-                       class="hidden sm:inline-flex items-center text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 font-medium">
-                        Lihat Semua
-                        <svg class="ml-1 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                        </svg>
-                    </a>
-                </div>
-
-                {{-- Product Grid --}}
-                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 md:gap-6">
-                    @foreach($featuredProducts as $product)
-                        <x-product-card :product="$product" />
-                    @endforeach
-                </div>
-
-                {{-- Mobile: Lihat Semua link --}}
-                <div class="mt-8 text-center sm:hidden">
-                    <a href="{{ route('products.index') }}" 
-                       class="inline-flex items-center text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 font-medium">
-                        Lihat Semua Produk
-                        <svg class="ml-1 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                        </svg>
-                    </a>
-                </div>
+    <!-- Footer -->
+    <footer class="bg-gray-100 mt-20 py-12">
+        <div class="max-w-screen-xl mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-8">
+            <div>
+                <img src="{{ asset('images/logo.png') }}" alt="GnG Mart" class="h-10 mb-4">
+                <p class="text-gray-600">Belanja kebutuhan keluarga dengan mudah, cepat, dan hemat!</p>
             </div>
-        </section>
-    @endif
-
-    {{-- CTA Section --}}
-    @guest
-        <section class="py-12 md:py-16">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="bg-indigo-700 rounded-2xl px-6 py-12 md:px-12 md:py-16 text-center">
-                    <h2 class="text-2xl md:text-3xl font-bold text-white">
-                        Siap Mulai Berbelanja?
-                    </h2>
-                    <p class="mt-4 text-indigo-100 max-w-xl mx-auto">
-                        Daftar sekarang dan nikmati kemudahan berbelanja di GNGMart. 
-                        Gratis dan tanpa ribet!
-                    </p>
-                    <div class="mt-8">
-                        <a href="{{ route('register') }}" 
-                           class="inline-flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-lg text-indigo-700 bg-white hover:bg-indigo-50 transition-colors">
-                            Daftar Gratis
-                        </a>
-                    </div>
-                </div>
+            <div>
+                <h3 class="font-semibold mb-3">Kategori</h3>
+                <ul class="text-gray-600 space-y-1">
+                    <li>Makanan dan Minuman</li>
+                    <li>Kebutuhan Rumah Tangga</li>
+                    <li>Aksesoris</li>
+                    <li>Alat Tulis</li>
+                    <li>Kesehatan</li>
+                    <li>Kecantikan</li>
+                </ul>
             </div>
-        </section>
-    @endguest
-</x-layouts.public>
+            <div>
+                <h3 class="font-semibold mb-3">Bantuan</h3>
+                <ul class="text-gray-600 space-y-1">
+                    <li>Cara Belanja</li>
+                    <li>Tentang GnG Mart</li>
+                </ul>
+            </div>
+            <div>
+                <h3 class="font-semibold mb-3">Hubungi Kami</h3>
+                <p class="text-gray-600 flex items-center gap-2"><span class="text-blue-500">📞</span> 0800-123-4567</p>
+            </div>
+        </div>
+        <div class="text-center text-gray-500 mt-8">
+            © 2026 GnG Mart. Semua hak dilindungi.
+        </div>
+    </footer>
+
