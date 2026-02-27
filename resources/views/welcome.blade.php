@@ -195,12 +195,12 @@
             ['image'=>'ayam.png','label'=>'SEGAR','name'=>'Daging Ayam Fillet','weight'=>'500 g','price'=>'35.000'],
             ['image'=>'jusjeruk.png','label'=>'MINUMAN','name'=>'Jus Jeruk Segar','weight'=>'250 ml','price'=>'25.000'],
             ['image'=>'cookies.png','label'=>'PROMO','name'=>'Cookies Cokelat Chip','weight'=>'300 g','price'=>'28.500'],
-            ['image'=>'https://images.unsplash.com/photo-1590080876411-37e27e95c925?w=400&h=400&fit=crop','label'=>'SEGAR','name'=>'Tomat Segar Organik','weight'=>'500 g','price'=>'15.000'],
-            ['image'=>'https://images.unsplash.com/photo-1581056771550-2173dba999ef?w=400&h=400&fit=crop','label'=>'SEGAR','name'=>'Yogurt Greek Plain','weight'=>'450 g','price'=>'32.000'],
-            ['image'=>'https://images.unsplash.com/photo-1599599810694-a4a2d5f98e6e?w=400&h=400&fit=crop','label'=>'PROMO','name'=>'Mi Instan Goreng','weight'=>'5 pcs','price'=>'12.500'],
-            ['image'=>'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&h=400&fit=crop','label'=>'SEGAR','name'=>'Salmon Fillet Segar','weight'=>'300 g','price'=>'85.000'],
-            ['image'=>'https://images.unsplash.com/photo-1600271886742-f049cd1f3033?w=400&h=400&fit=crop','label'=>'MINUMAN','name'=>'Teh Hijau Botol','weight'=>'500 ml','price'=>'8.500'],
-            ['image'=>'https://images.unsplash.com/photo-1585704032915-c3400ca199e7?w=400&h=400&fit=crop','label'=>'PROMO','name'=>'Keripik Kentang BBQ','weight'=>'150 g','price'=>'16.000'],
+            ['image'=>'tomat.png','label'=>'SEGAR','name'=>'Tomat Segar Organik','weight'=>'500 g','price'=>'15.000'],
+            ['image'=>'yogurt.png','label'=>'SEGAR','name'=>'Yogurt Greek Plain','weight'=>'450 g','price'=>'32.000'],
+            ['image'=>'mie.png','label'=>'PROMO','name'=>'Mi Instan Goreng','weight'=>'5 pcs','price'=>'12.500'],
+            ['image'=>'salmon.png','label'=>'SEGAR','name'=>'Salmon Fillet Segar','weight'=>'300 g','price'=>'85.000'],
+            ['image'=>'tehhijau.png','label'=>'MINUMAN','name'=>'Teh Hijau Botol','weight'=>'500 ml','price'=>'8.500'],
+            ['image'=>'chips.png','label'=>'PROMO','name'=>'Keripik Kentang BBQ','weight'=>'150 g','price'=>'16.000'],
         ];
     @endphp
 
@@ -237,4 +237,54 @@
     @endforeach
 
 </div>
+
+    <!-- Promo Section -->
+    <div class="max-w-screen-xl mx-auto px-6 mt-16">
+        <div class="relative bg-gradient-to-r from-green-300 via-green-400 to-green-500 rounded-3xl p-12 flex flex-col md:flex-row items-center">
+            <div class="flex-1 pr-8">
+                <h2 class="text-3xl font-bold text-gray-800 mb-4">Hemat 30% untuk Produk Organik!</h2>
+                <p class="text-gray-600 mb-6">Nikmati kesegaran alami dengan harga spesial minggu ini</p>
+                <a href="#" class="inline-block bg-red-600 text-white px-6 py-3 rounded-full hover:bg-red-700 transition">
+                    Belanja Sekarang
+                </a>
+            </div>
+            <!-- image overlaps outside green box -->
+            <img src="{{ asset('images/sayur.png') }}" alt="Promo Organik" class="absolute right-0 top-0 h-full w-auto max-w-md rounded-2xl object-cover">
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-100 mt-20 py-12">
+        <div class="max-w-screen-xl mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-8">
+            <div>
+                <img src="{{ asset('images/logo.png') }}" alt="GnG Mart" class="h-10 mb-4">
+                <p class="text-gray-600">Belanja kebutuhan keluarga dengan mudah, cepat, dan hemat!</p>
+            </div>
+            <div>
+                <h3 class="font-semibold mb-3">Kategori</h3>
+                <ul class="text-gray-600 space-y-1">
+                    <li>Makanan dan Minuman</li>
+                    <li>Kebutuhan Rumah Tangga</li>
+                    <li>Aksesoris</li>
+                    <li>Alat Tulis</li>
+                    <li>Kesehatan</li>
+                    <li>Kecantikan</li>
+                </ul>
+            </div>
+            <div>
+                <h3 class="font-semibold mb-3">Bantuan</h3>
+                <ul class="text-gray-600 space-y-1">
+                    <li>Cara Belanja</li>
+                    <li>Tentang GnG Mart</li>
+                </ul>
+            </div>
+            <div>
+                <h3 class="font-semibold mb-3">Hubungi Kami</h3>
+                <p class="text-gray-600 flex items-center gap-2"><span class="text-blue-500">📞</span> 0800-123-4567</p>
+            </div>
+        </div>
+        <div class="text-center text-gray-500 mt-8">
+            © 2026 GnG Mart. Semua hak dilindungi.
+        </div>
+    </footer>
 
