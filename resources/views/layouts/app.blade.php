@@ -7,7 +7,7 @@
     @vite('resources/css/app.css')
 </head>
 
-<body class="bg-gray-100 text-gray-800 scroll-pt-24">
+<body class="bg-gray-100 text-gray-800">
 
 <nav class="bg-white shadow-md fixed top-0 left-0 w-full z-50">
     <div class="max-w-screen-xl mx-auto px-6">
@@ -37,19 +37,11 @@
             <!-- Right Menu -->
             <div class="flex items-center gap-6">
 
-                @auth
-                    <!-- Cart -->
-                    <a href="{{ route('cart.index') }}" class="flex items-center gap-1 hover:text-red-600 transition">
-                        <span class="text-xl">🛒</span>
-                        <span class="text-sm font-medium">Keranjang</span>
-                    </a>
-
-                    <!-- Orders -->
-                    <a href="{{ route('orders.index') }}" class="flex items-center gap-1 hover:text-red-600 transition">
-                        <span class="text-xl">📦</span>
-                        <span class="text-sm font-medium">Pesanan</span>
-                    </a>
-                @endauth
+                <!-- Cart -->
+                <a href="#" class="flex items-center gap-1 hover:text-red-600 transition">
+                    <span class="text-xl">🛒</span>
+                    <span class="text-sm font-medium">Keranjang</span>
+                </a>
 
                 <!-- Guest -->
                 @guest
@@ -88,23 +80,7 @@
 </nav>
 
 <main class="pt-24 pb-10">
-    {{-- Header slot for page title (component syntax) --}}
-    @isset($header)
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-6">
-            <div class="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg">
-                <div class="px-4 py-5 sm:px-6">
-                    {{ $header }}
-                </div>
-            </div>
-        </div>
-    @endisset
-
-    {{-- Content: support both component ($slot) and extends (@yield) syntax --}}
-    @isset($slot)
-        {{ $slot }}
-    @else
-        @yield('content')
-    @endisset
+    @yield('content')
 </main>
 
 </body>

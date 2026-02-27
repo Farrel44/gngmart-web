@@ -189,52 +189,100 @@
 
     @php
         $products = [
-            ['image'=>'apel.png','label'=>'SEGAR','name'=>'Apel Fuji Premium','weight'=>'1 kg','price'=>'45.000'],
-            ['image'=>'susu.png','label'=>'SEGAR','name'=>'Susu Segar Ultra','weight'=>'1 Liter','price'=>'18.500'],
-            ['image'=>'roti.png','label'=>'PROMO','name'=>'Roti Gandum Sehat','weight'=>'500 g','price'=>'22.000'],
-            ['image'=>'ayam.png','label'=>'SEGAR','name'=>'Daging Ayam Fillet','weight'=>'500 g','price'=>'35.000'],
-            ['image'=>'jusjeruk.png','label'=>'MINUMAN','name'=>'Jus Jeruk Segar','weight'=>'250 ml','price'=>'25.000'],
-            ['image'=>'cookies.png','label'=>'PROMO','name'=>'Cookies Cokelat Chip','weight'=>'300 g','price'=>'28.500'],
-            ['image'=>'tomat.png','label'=>'SEGAR','name'=>'Tomat Segar Organik','weight'=>'500 g','price'=>'15.000'],
-            ['image'=>'yogurt.png','label'=>'SEGAR','name'=>'Yogurt Greek Plain','weight'=>'450 g','price'=>'32.000'],
-            ['image'=>'mie.png','label'=>'PROMO','name'=>'Mi Instan Goreng','weight'=>'5 pcs','price'=>'12.500'],
-            ['image'=>'salmon.png','label'=>'SEGAR','name'=>'Salmon Fillet Segar','weight'=>'300 g','price'=>'85.000'],
-            ['image'=>'tehhijau.png','label'=>'MINUMAN','name'=>'Teh Hijau Botol','weight'=>'500 ml','price'=>'8.500'],
-            ['image'=>'chips.png','label'=>'PROMO','name'=>'Keripik Kentang BBQ','weight'=>'150 g','price'=>'16.000'],
+            ['slug'=>'apel-fuji-premium','image'=>'apel.png','label'=>'SEGAR','name'=>'Apel Fuji Premium','weight'=>'1 kg','price'=>'45.000'],
+            ['slug'=>'susu-segar-ultra','image'=>'susu.png','label'=>'SEGAR','name'=>'Susu Segar Ultra','weight'=>'1 Liter','price'=>'18.500'],
+            ['slug'=>'roti-gandum-sehat','image'=>'roti.png','label'=>'PROMO','name'=>'Roti Gandum Sehat','weight'=>'500 g','price'=>'22.000'],
+            ['slug'=>'daging-ayam-fillet','image'=>'ayam.png','label'=>'SEGAR','name'=>'Daging Ayam Fillet','weight'=>'500 g','price'=>'35.000'],
+            ['slug'=>'jus-jeruk-segar','image'=>'jusjeruk.png','label'=>'MINUMAN','name'=>'Jus Jeruk Segar','weight'=>'250 ml','price'=>'25.000'],
+            ['slug'=>'cookies-cokelat-chip','image'=>'cookies.png','label'=>'PROMO','name'=>'Cookies Cokelat Chip','weight'=>'300 g','price'=>'28.500'],
+            ['slug'=>'tomat-segar-organik','image'=>'tomat.png','label'=>'SEGAR','name'=>'Tomat Segar Organik','weight'=>'500 g','price'=>'15.000'],
+            ['slug'=>'yogurt-greek-plain','image'=>'yogurt.png','label'=>'SEGAR','name'=>'Yogurt Greek Plain','weight'=>'450 g','price'=>'32.000'],
+            ['slug'=>'mi-instan-goreng','image'=>'mie.png','label'=>'PROMO','name'=>'Mi Instan Goreng','weight'=>'5 pcs','price'=>'12.500'],
+            ['slug'=>'salmon-fillet-segar','image'=>'salmon.png','label'=>'SEGAR','name'=>'Salmon Fillet Segar','weight'=>'300 g','price'=>'85.000'],
+            ['slug'=>'teh-hijau-botol','image'=>'tehhijau.png','label'=>'MINUMAN','name'=>'Teh Hijau Botol','weight'=>'500 ml','price'=>'8.500'],
+            ['slug'=>'keripik-kentang-bbq','image'=>'chips.png','label'=>'PROMO','name'=>'Keripik Kentang BBQ','weight'=>'150 g','price'=>'16.000'],
         ];
+        
+        // Create weight and label maps from products array for database products
+        $weightMap = collect($products)->keyBy('slug')->map(fn($p) => $p['weight']);
+        $labelMap = collect($products)->keyBy('slug')->map(fn($p) => $p['label']);
     @endphp
 
-    @foreach($products as $product)
-    <div class="bg-white rounded-2xl shadow-sm hover:shadow-md transition p-4">
+    @forelse($featuredProducts as $product)
+    <a href="{{ route('products.show', $product->slug) }}" class="bg-white rounded-2xl shadow-sm hover:shadow-md transition p-4 block">
 
-        <img src="{{ Str::startsWith($product['image'], ['http://','https://']) ? $product['image'] : asset('images/products/' . $product['image']) }}" 
-             alt="{{ $product['name'] }}"
+        @php
+            $imageUrl = $product->images->first() 
+                ? asset($product->images->first()->image_url) 
+                : asset('images/placeholder.png');
+            
+            // Get weight and label from mapping
+            $productWeight = $weightMap[$product->slug] ?? '-';
+            $productLabel = $labelMap[$product->slug] ?? 'SEGAR';
+            
+            // Determine label color
+            $labelColor = $productLabel == 'PROMO' ? 'text-orange-500' : 
+                         ($productLabel == 'MINUMAN' ? 'text-blue-500' : 'text-green-500');
+        @endphp
+        
+        <img src="{{ $imageUrl }}" 
+             alt="{{ $product->name }}"
              class="h-32 w-full object-cover rounded-xl mb-4 bg-gray-200">
 
-        <span class="text-xs font-bold 
-            {{ $product['label'] == 'PROMO' ? 'text-orange-500' : 
-               ($product['label'] == 'MINUMAN' ? 'text-blue-500' : 'text-green-500') }}">
-            {{ $product['label'] }}
+        <span class="text-xs font-bold {{ $labelColor }}">
+            {{ $productLabel }}
         </span>
 
         <h3 class="font-semibold text-gray-800 text-sm mt-1">
-            {{ $product['name'] }}
+            {{ $product->name }}
         </h3>
 
         <p class="text-xs text-gray-500 mb-2">
-            {{ $product['weight'] }}
+            {{ $productWeight }}
         </p>
 
-        <p class="text-green-600 font-bold mb-3">
-            Rp {{ $product['price'] }}
+        <p class="text-red-600 font-bold mb-3">
+            Rp {{ number_format($product->price, 0, ',', '.') }}
         </p>
 
-        <button class="w-full bg-red-600 text-white py-2 rounded-full text-sm hover:bg-red-700 transition">
+        <button class="w-full bg-red-600 text-white py-2 rounded-full text-sm hover:bg-red-700 transition" onclick="event.preventDefault();">
             Beli
         </button>
 
-    </div>
-    @endforeach
+    </a>
+    @empty
+        @foreach($products as $product)
+        <a href="{{ route('products.show', $product['slug']) }}" class="bg-white rounded-2xl shadow-sm hover:shadow-md transition p-4 block">
+
+            <img src="{{ Str::startsWith($product['image'], ['http://','https://']) ? $product['image'] : asset('images/products/' . $product['image']) }}" 
+                 alt="{{ $product['name'] }}"
+                 class="h-32 w-full object-cover rounded-xl mb-4 bg-gray-200">
+
+            <span class="text-xs font-bold 
+                {{ $product['label'] == 'PROMO' ? 'text-orange-500' : 
+                   ($product['label'] == 'MINUMAN' ? 'text-blue-500' : 'text-green-500') }}">
+                {{ $product['label'] }}
+            </span>
+
+            <h3 class="font-semibold text-gray-800 text-sm mt-1">
+                {{ $product['name'] }}
+            </h3>
+
+            <p class="text-xs text-gray-500 mb-2">
+                {{ $product['weight'] }}
+            </p>
+
+            <p class="text-green-600 font-bold mb-3">
+                Rp {{ $product['price'] }}
+            </p>
+
+            <button class="w-full bg-red-600 text-white py-2 rounded-full text-sm hover:bg-red-700 transition" onclick="event.preventDefault();">
+                Beli
+            </button>
+
+        </a>
+        @endforeach
+    @endempty
 
 </div>
 

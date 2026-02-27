@@ -28,12 +28,11 @@ class HomeController extends Controller
             ->orderBy('name')
             ->get();
 
-        // Ambil 8 produk terbaru yang masih ada stok (featured/showcase)
+        // Ambil semua produk yang masih ada stok untuk featured/showcase
         // Eager load images untuk menghindari N+1 saat render card
         $featuredProducts = Product::with(['category', 'images'])
             ->where('stock', '>', 0)
             ->latest()
-            ->take(8)
             ->get();
 
         return view('home', compact('categories', 'featuredProducts'));
