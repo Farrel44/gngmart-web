@@ -89,4 +89,18 @@ class HomeTest extends TestCase
         $response->assertStatus(200);
         $this->assertLessThanOrEqual(8, substr_count($response->getContent(), 'product-card'));
     }
+
+    // ========================================
+    // GAP: Empty Database Rendering
+    // ========================================
+
+    public function test_home_renders_with_empty_database(): void
+    {
+        // Database kosong (no categories, no products)
+        // Home page harus tetap render tanpa error
+        $response = $this->get(route('home'));
+
+        $response->assertStatus(200);
+        $response->assertSee('GNGMart');
+    }
 }

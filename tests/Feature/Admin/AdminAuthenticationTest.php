@@ -97,4 +97,19 @@ class AdminAuthenticationTest extends TestCase
         // Filament redirects authenticated admins to /admin
         $response->assertRedirect('/admin');
     }
+
+    // ========================================
+    // GAP: Regular User Cannot Access Admin
+    // ========================================
+
+    public function test_regular_user_cannot_access_admin_panel(): void
+    {
+        $user = \App\Models\User::factory()->create();
+
+        // Regular user (web guard) should not be able to access admin panel
+        $response = $this->actingAs($user)->get('/admin');
+
+        // Filament should redirect non-admin users to admin login
+        $response->assertRedirect('/admin/login');
+    }
 }

@@ -415,4 +415,87 @@ class CheckoutTest extends TestCase
 
         return $cart;
     }
+
+    // ========================================
+    // GAP: Validation Boundary Tests
+    // ========================================
+
+    public function test_address_shipment_maximum_length(): void
+    {
+        $this->setupCartWithItem();
+
+        // Lebih dari 500 karakter harus ditolak
+        $response = $this->actingAs($this->user)->post(route('checkout.store'), [
+            'address_shipment' => str_repeat('A', 501),
+        ]);
+
+        $response->assertSessionHasErrors('address_shipment');
+    }
+
+    // ========================================
+    // GAP: Multi-item Stock Failure
+    // ========================================
+
+    public function test_checkout_fails_when_one_item_out_of_stock_in_multi_item_cart(): void
+    {
+        // Produk kedua dengan stok sangat terbatas
+        $product2 = Product::factory()->for($this->category)->create([
+            'price' => 50000,
+            'stock' => 1,
+        ]);
+
+        $cart = Cart::create(['user_id' => $this->user->id]);
+        CartItem::create([
+            'cart_id' => $cart->id,
+            'product_id' => $this->product->id,
+            'quantity' => 2, // OK: stok 10
+        ]);
+        CartItem::create([
+            'cart_id' => $cart->id,
+            'product_id' => $product2->id,
+            'quantity' => 5, // FAIL: stok cuma 1
+        ]);
+
+        $response = $this->actingAs($this->user)->post(route('checkout.store'), [
+            'address_shipment' => 'Jl. Pengiriman No. 456, Kota Tujuan',
+        ]);
+
+        $response->assertSessionHasErrors('stock');
+
+        // Tidak ada order yang dibuat
+        $this->assertDatabaseMissing('orders', ['user_id' => $this->user->id]);
+
+        // Stok kedua produk tidak berubah (rollback transaction)
+        $this->assertEquals(10, $this->product->fresh()->stock);
+        $this->assertEquals(1, $product2->fresh()->stock);
+    }
+
+    // ========================================
+    // GAP: Security — Mass Assignment
+    // ========================================
+
+    public function test_checkout_ignores_extra_fields_total_price_user_id_status(): void
+    {
+        $this->setupCartWithItem(quantity: 2);
+
+        $otherUser = User::factory()->create();
+
+        $response = $this->actingAs($this->user)->post(route('checkout.store'), [
+            'address_shipment' => 'Jl. Pengiriman No. 456, Kota Tujuan',
+            'total_price' => 1, // Injeksi: harga dipalsukan
+            'user_id' => $otherUser->id, // Injeksi: user lain
+            'order_status' => 'completed', // Injeksi: langsung selesai
+        ]);
+
+        $response->assertRedirect();
+
+        // Order harus milik user yang login, bukan injeksi
+        $order = Order::where('user_id', $this->user->id)->first();
+        $this->assertNotNull($order);
+        $this->assertEquals(200000, $order->total_price); // 100000 × 2
+        $this->assertEquals(Order::STATUS_PENDING, $order->order_status);
+
+        // Tidak ada order atas nama otherUser
+        $this->assertDatabaseMissing('orders', ['user_id' => $otherUser->id]);
+    }
 }

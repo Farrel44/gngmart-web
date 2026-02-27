@@ -400,4 +400,128 @@ class PaymentTest extends TestCase
         $this->assertTrue($successPayment->isVerified());
         $this->assertFalse($failedPayment->isVerified());
     }
+
+    // ========================================
+    // GAP: Non-pending Order Payment Submission
+    // ========================================
+
+    public function test_cannot_submit_payment_for_non_pending_order(): void
+    {
+        $data = $this->createUserWithPendingOrder();
+
+        // Ubah status order ke paid (tanpa payment record)
+        $data['order']->update(['order_status' => Order::STATUS_PAID]);
+
+        $this->actingAs($data['user']);
+
+        $response = $this->post(route('payment.store', $data['order']), [
+            'payment_method' => Payment::METHOD_COD,
+        ]);
+
+        $response->assertRedirect(route('orders.show', $data['order']));
+        $response->assertSessionHas('error');
+
+        // Tidak ada payment dibuat
+        $this->assertEquals(0, Payment::where('order_id', $data['order']->id)->count());
+    }
+
+    // ========================================
+    // GAP: E-wallet Proof Required
+    // ========================================
+
+    public function test_ewallet_payment_requires_proof(): void
+    {
+        $data = $this->createUserWithPendingOrder();
+
+        $this->actingAs($data['user']);
+
+        // E-wallet tanpa bukti bayar harus gagal
+        $response = $this->post(route('payment.store', $data['order']), [
+            'payment_method' => Payment::METHOD_EWALLET,
+            // No payment_proof
+        ]);
+
+        $response->assertSessionHasErrors('payment_proof');
+    }
+
+    // ========================================
+    // GAP: Nonexistent Order
+    // ========================================
+
+    public function test_payment_for_nonexistent_order_returns_404(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user);
+
+        $response = $this->get('/orders/99999/payment');
+
+        $response->assertNotFound();
+    }
+
+    // ========================================
+    // GAP: Payment Model Helpers
+    // ========================================
+
+    public function test_payment_is_pending_method(): void
+    {
+        $pendingPayment = new Payment(['payment_status' => Payment::STATUS_PENDING]);
+        $successPayment = new Payment(['payment_status' => Payment::STATUS_SUCCESS]);
+        $failedPayment = new Payment(['payment_status' => Payment::STATUS_FAILED]);
+
+        $this->assertTrue($pendingPayment->isPending());
+        $this->assertFalse($successPayment->isPending());
+        $this->assertFalse($failedPayment->isPending());
+    }
+
+    public function test_payment_method_label(): void
+    {
+        $transfer = new Payment(['payment_method' => Payment::METHOD_TRANSFER]);
+        $ewallet = new Payment(['payment_method' => Payment::METHOD_EWALLET]);
+        $cod = new Payment(['payment_method' => Payment::METHOD_COD]);
+
+        $this->assertEquals('Transfer Bank', $transfer->getMethodLabel());
+        $this->assertEquals('E-Wallet', $ewallet->getMethodLabel());
+        $this->assertEquals('Bayar di Tempat (COD)', $cod->getMethodLabel());
+    }
+
+    public function test_payment_status_label(): void
+    {
+        $pending = new Payment(['payment_status' => Payment::STATUS_PENDING]);
+        $success = new Payment(['payment_status' => Payment::STATUS_SUCCESS]);
+        $failed = new Payment(['payment_status' => Payment::STATUS_FAILED]);
+
+        $this->assertEquals('Menunggu Verifikasi', $pending->getStatusLabel());
+        $this->assertEquals('Berhasil', $success->getStatusLabel());
+        $this->assertEquals('Gagal', $failed->getStatusLabel());
+    }
+
+    // ========================================
+    // GAP: Security — Mass Assignment
+    // ========================================
+
+    public function test_payment_ignores_extra_fields_payment_status_order_id(): void
+    {
+        $data = $this->createUserWithPendingOrder();
+        $otherData = $this->createUserWithPendingOrder();
+
+        $this->actingAs($data['user']);
+
+        $response = $this->post(route('payment.store', $data['order']), [
+            'payment_method' => Payment::METHOD_COD,
+            'payment_status' => Payment::STATUS_SUCCESS, // Injeksi: langsung success
+            'order_id' => $otherData['order']->id, // Injeksi: order lain
+        ]);
+
+        $response->assertRedirect(route('orders.show', $data['order']));
+
+        // Payment harus tetap pending, bukan success
+        $payment = Payment::where('order_id', $data['order']->id)->first();
+        $this->assertNotNull($payment);
+        $this->assertEquals(Payment::STATUS_PENDING, $payment->payment_status);
+        $this->assertEquals($data['order']->id, $payment->order_id);
+
+        // Order lain tidak punya payment
+        $this->assertEquals(0, Payment::where('order_id', $otherData['order']->id)->count());
+    }
 }

@@ -272,4 +272,62 @@ class ProductCatalogTest extends TestCase
         $response->assertStatus(200);
         $response->assertSee('Tidak ada produk ditemukan');
     }
+
+    // ========================================
+    // GAP: Error Handling — Graceful Degradation
+    // ========================================
+
+    public function test_catalog_handles_nonexistent_category_filter_gracefully(): void
+    {
+        $category = Category::factory()->create();
+        Product::factory()->create([
+            'category_id' => $category->id,
+            'name' => 'Visible Product',
+            'stock' => 5,
+        ]);
+
+        // Filter kategori yang tidak ada — harus menampilkan empty state, bukan crash
+        $response = $this->get(route('products.index', ['category' => 99999]));
+
+        $response->assertStatus(200);
+        $response->assertSee('Tidak ada produk ditemukan');
+    }
+
+    public function test_catalog_handles_invalid_sort_parameter(): void
+    {
+        $category = Category::factory()->create();
+        Product::factory()->create([
+            'category_id' => $category->id,
+            'name' => 'Some Product',
+            'stock' => 5,
+        ]);
+
+        // Sort parameter yang tidak valid — harus menggunakan default, bukan crash
+        $response = $this->get(route('products.index', ['sort' => 'injection_attempt']));
+
+        $response->assertStatus(200);
+        $response->assertSee('Some Product');
+    }
+
+    // ========================================
+    // GAP: Security — SQL Special Characters in Search
+    // ========================================
+
+    public function test_search_with_special_sql_characters(): void
+    {
+        $category = Category::factory()->create();
+        Product::factory()->create([
+            'category_id' => $category->id,
+            'name' => 'Normal Product',
+            'stock' => 5,
+        ]);
+
+        // Special characters tidak boleh menyebabkan error
+        $specialChars = ["'", '"', '%', '_', ';', '--', 'OR 1=1'];
+
+        foreach ($specialChars as $char) {
+            $response = $this->get(route('products.index', ['search' => $char]));
+            $response->assertStatus(200);
+        }
+    }
 }

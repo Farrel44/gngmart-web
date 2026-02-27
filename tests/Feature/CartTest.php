@@ -421,4 +421,162 @@ class CartTest extends TestCase
         // Total = 100000 + 90000 = 190000
         $this->assertEquals(190000, $cart->getTotalPrice());
     }
+
+    // ========================================
+    // GAP: Guest Access for Update/Delete/Clear
+    // ========================================
+
+    public function test_guest_cannot_update_cart_item(): void
+    {
+        $cart = Cart::create(['user_id' => $this->user->id]);
+        $item = CartItem::create([
+            'cart_id' => $cart->id,
+            'product_id' => $this->product->id,
+            'quantity' => 2,
+        ]);
+
+        $response = $this->patch(route('cart.update', $item), ['quantity' => 5]);
+
+        $response->assertRedirect(route('login'));
+    }
+
+    public function test_guest_cannot_delete_cart_item(): void
+    {
+        $cart = Cart::create(['user_id' => $this->user->id]);
+        $item = CartItem::create([
+            'cart_id' => $cart->id,
+            'product_id' => $this->product->id,
+            'quantity' => 2,
+        ]);
+
+        $response = $this->delete(route('cart.destroy', $item));
+
+        $response->assertRedirect(route('login'));
+    }
+
+    public function test_guest_cannot_clear_cart(): void
+    {
+        $response = $this->delete(route('cart.clear'));
+
+        $response->assertRedirect(route('login'));
+    }
+
+    // ========================================
+    // GAP: Validation Boundary Tests
+    // ========================================
+
+    public function test_cannot_add_to_cart_with_zero_quantity(): void
+    {
+        $response = $this->actingAs($this->user)->post(route('cart.store'), [
+            'product_id' => $this->product->id,
+            'quantity' => 0,
+        ]);
+
+        $response->assertSessionHasErrors('quantity');
+        $this->assertEquals(0, CartItem::count());
+    }
+
+    public function test_cannot_add_to_cart_with_negative_quantity(): void
+    {
+        $response = $this->actingAs($this->user)->post(route('cart.store'), [
+            'product_id' => $this->product->id,
+            'quantity' => -3,
+        ]);
+
+        $response->assertSessionHasErrors('quantity');
+        $this->assertEquals(0, CartItem::count());
+    }
+
+    public function test_cannot_update_cart_with_zero_quantity(): void
+    {
+        $cart = Cart::create(['user_id' => $this->user->id]);
+        $item = CartItem::create([
+            'cart_id' => $cart->id,
+            'product_id' => $this->product->id,
+            'quantity' => 2,
+        ]);
+
+        $response = $this->actingAs($this->user)->patch(route('cart.update', $item), [
+            'quantity' => 0,
+        ]);
+
+        $response->assertSessionHasErrors('quantity');
+
+        // Quantity tetap 2
+        $this->assertDatabaseHas('cart_items', [
+            'id' => $item->id,
+            'quantity' => 2,
+        ]);
+    }
+
+    public function test_cannot_add_to_cart_without_product_id(): void
+    {
+        $response = $this->actingAs($this->user)->post(route('cart.store'), [
+            'quantity' => 1,
+        ]);
+
+        $response->assertSessionHasErrors('product_id');
+    }
+
+    public function test_cannot_add_to_cart_without_quantity(): void
+    {
+        $response = $this->actingAs($this->user)->post(route('cart.store'), [
+            'product_id' => $this->product->id,
+        ]);
+
+        $response->assertSessionHasErrors('quantity');
+    }
+
+    public function test_cannot_add_to_cart_with_non_integer_quantity(): void
+    {
+        $response = $this->actingAs($this->user)->post(route('cart.store'), [
+            'product_id' => $this->product->id,
+            'quantity' => 'abc',
+        ]);
+
+        $response->assertSessionHasErrors('quantity');
+        $this->assertEquals(0, CartItem::count());
+    }
+
+    // ========================================
+    // GAP: Out of Stock Product
+    // ========================================
+
+    public function test_cannot_add_out_of_stock_product_to_cart(): void
+    {
+        $outOfStockProduct = Product::factory()->for($this->category)->create([
+            'price' => 50000,
+            'stock' => 0,
+        ]);
+
+        $response = $this->actingAs($this->user)->post(route('cart.store'), [
+            'product_id' => $outOfStockProduct->id,
+            'quantity' => 1,
+        ]);
+
+        $response->assertSessionHasErrors('quantity');
+        $this->assertEquals(0, CartItem::count());
+    }
+
+    // ========================================
+    // GAP: Security — Mass Assignment
+    // ========================================
+
+    public function test_cart_store_ignores_extra_fields(): void
+    {
+        $response = $this->actingAs($this->user)->post(route('cart.store'), [
+            'product_id' => $this->product->id,
+            'quantity' => 1,
+            'price' => 1, // Extra field: harus diabaikan
+            'cart_id' => 999, // Extra field: harus diabaikan
+        ]);
+
+        $response->assertRedirect(route('cart.index'));
+
+        // Item tetap menggunakan harga produk asli, bukan injected price
+        $item = CartItem::first();
+        $this->assertNotNull($item);
+        $this->assertEquals(1, $item->quantity);
+        $this->assertEquals($this->product->getEffectivePrice(), $item->getSubtotal());
+    }
 }

@@ -106,4 +106,59 @@ class ProfileTest extends TestCase
 
         $this->assertNotNull($user->fresh());
     }
+
+    // ========================================
+    // GAP: Profile Validation Tests
+    // ========================================
+
+    public function test_cannot_update_profile_to_existing_email(): void
+    {
+        /** @var User $user */
+        $user = User::factory()->create();
+
+        // Create another user with a specific email
+        User::factory()->create(['email' => 'taken@example.com']);
+
+        $response = $this
+            ->actingAs($user)
+            ->patch('/profile', [
+                'name' => 'Test User',
+                'phone' => '081234567890',
+                'email' => 'taken@example.com', // Already taken
+            ]);
+
+        $response->assertSessionHasErrors('email');
+    }
+
+    public function test_profile_update_requires_name(): void
+    {
+        /** @var User $user */
+        $user = User::factory()->create();
+
+        $response = $this
+            ->actingAs($user)
+            ->patch('/profile', [
+                'name' => '',
+                'phone' => '081234567890',
+                'email' => $user->email,
+            ]);
+
+        $response->assertSessionHasErrors('name');
+    }
+
+    public function test_profile_update_requires_email(): void
+    {
+        /** @var User $user */
+        $user = User::factory()->create();
+
+        $response = $this
+            ->actingAs($user)
+            ->patch('/profile', [
+                'name' => 'Test User',
+                'phone' => '081234567890',
+                'email' => '',
+            ]);
+
+        $response->assertSessionHasErrors('email');
+    }
 }

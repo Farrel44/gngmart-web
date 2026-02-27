@@ -435,4 +435,141 @@ class OrderHistoryTest extends TestCase
         $this->assertNotNull($data['pendingOrder']->fresh()->payment);
         $this->assertEquals(Payment::METHOD_COD, $data['pendingOrder']->fresh()->payment->payment_method);
     }
+
+    // ========================================
+    // GAP: Guest Cannot Cancel Order
+    // ========================================
+
+    public function test_guest_cannot_cancel_order(): void
+    {
+        $data = $this->createUserWithOrders();
+
+        $response = $this->delete(route('orders.cancel', $data['pendingOrder']));
+
+        $response->assertRedirect(route('login'));
+    }
+
+    // ========================================
+    // GAP: Order History Isolation
+    // ========================================
+
+    public function test_order_history_does_not_show_other_users_orders(): void
+    {
+        $data = $this->createUserWithOrders();
+        $otherUser = User::factory()->create();
+
+        // otherUser shouldn't see data['user']'s orders
+        $this->actingAs($otherUser);
+
+        $response = $this->get(route('orders.index'));
+
+        $response->assertOk();
+        $response->assertDontSee('Rp 100.000');
+        $response->assertDontSee('Rp 150.000');
+        $response->assertDontSee('Rp 200.000');
+        $response->assertSee('Belum ada pesanan');
+    }
+
+    // ========================================
+    // GAP: Nonexistent Order
+    // ========================================
+
+    public function test_nonexistent_order_returns_404(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user);
+
+        $response = $this->get('/orders/99999');
+
+        $response->assertNotFound();
+    }
+
+    // ========================================
+    // GAP: Cancel Already-Cancelled Order
+    // ========================================
+
+    public function test_cannot_cancel_already_cancelled_order(): void
+    {
+        $user = User::factory()->create();
+        $category = Category::factory()->create();
+        $product = Product::factory()->create([
+            'category_id' => $category->id,
+            'stock' => 10,
+        ]);
+
+        $cancelledOrder = Order::create([
+            'user_id' => $user->id,
+            'total_price' => 100000,
+            'order_date' => now(),
+            'order_status' => Order::STATUS_CANCELLED,
+            'address_shipment' => 'Jl. Cancelled',
+        ]);
+
+        OrderItem::create([
+            'order_id' => $cancelledOrder->id,
+            'product_id' => $product->id,
+            'quantity' => 2,
+            'price' => 50000,
+        ]);
+
+        $this->actingAs($user);
+
+        $response = $this->delete(route('orders.cancel', $cancelledOrder));
+
+        $response->assertSessionHas('error');
+        $this->assertEquals(Order::STATUS_CANCELLED, $cancelledOrder->fresh()->order_status);
+
+        // Stok tidak boleh bertambah lagi
+        $this->assertEquals(10, $product->fresh()->stock);
+    }
+
+    // ========================================
+    // GAP: Order Model — isFinal, transitionTo
+    // ========================================
+
+    public function test_order_is_final_method(): void
+    {
+        $data = $this->createUserWithOrders();
+
+        $this->assertFalse($data['pendingOrder']->isFinal());
+        $this->assertFalse($data['paidOrder']->isFinal());
+        $this->assertTrue($data['completedOrder']->isFinal());
+
+        // Also test cancelled
+        $user = User::factory()->create();
+        $category = Category::factory()->create();
+        Product::factory()->create(['category_id' => $category->id]);
+
+        $cancelledOrder = Order::create([
+            'user_id' => $user->id,
+            'total_price' => 50000,
+            'order_date' => now(),
+            'order_status' => Order::STATUS_CANCELLED,
+            'address_shipment' => 'Test',
+        ]);
+        $this->assertTrue($cancelledOrder->isFinal());
+    }
+
+    public function test_transition_to_invalid_status_returns_false_without_saving(): void
+    {
+        $data = $this->createUserWithOrders();
+
+        // Pending → Shipped is invalid
+        $result = $data['pendingOrder']->transitionTo(Order::STATUS_SHIPPED);
+
+        $this->assertFalse($result);
+        $this->assertEquals(Order::STATUS_PENDING, $data['pendingOrder']->fresh()->order_status);
+    }
+
+    public function test_transition_to_valid_status_saves_and_returns_true(): void
+    {
+        $data = $this->createUserWithOrders();
+
+        // Pending → Paid is valid
+        $result = $data['pendingOrder']->transitionTo(Order::STATUS_PAID);
+
+        $this->assertTrue($result);
+        $this->assertEquals(Order::STATUS_PAID, $data['pendingOrder']->fresh()->order_status);
+    }
 }
