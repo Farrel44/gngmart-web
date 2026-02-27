@@ -109,18 +109,28 @@
                         </table>
 
                         {{-- Cart Summary --}}
-                        <div class="mt-8 border-t pt-6 flex justify-between items-center">
-                            <form action="{{ route('cart.clear') }}" method="POST" onsubmit="return confirm('Kosongkan semua item di keranjang?')">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="text-red-600 hover:text-red-900 font-medium">
-                                    Kosongkan Keranjang
-                                </button>
-                            </form>
+                        <div class="mt-8 border-t pt-6">
+                            <div class="flex justify-between items-center">
+                                <form action="{{ route('cart.clear') }}" method="POST" onsubmit="return confirm('Kosongkan semua item di keranjang?')">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="text-red-600 hover:text-red-900 font-medium">
+                                        Kosongkan Keranjang
+                                    </button>
+                                </form>
 
-                            <div class="text-right">
-                                <p class="text-gray-500 dark:text-gray-400">Total ({{ $cart->getTotalItems() }} item)</p>
-                                <p class="text-2xl font-bold">Rp {{ number_format($cart->getTotalPrice(), 0, ',', '.') }}</p>
+                                <div class="text-right">
+                                    <p class="text-gray-500 dark:text-gray-400">Total ({{ $cart->getTotalItems() }} item)</p>
+                                    <p class="text-2xl font-bold">Rp {{ number_format($cart->getTotalPrice(), 0, ',', '.') }}</p>
+                                </div>
+                            </div>
+
+                            {{-- Checkout Button --}}
+                            <div class="mt-6 flex justify-end">
+                                <a href="{{ route('checkout.index') }}" 
+                                   class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-8 rounded-lg transition duration-200">
+                                    Lanjut ke Checkout
+                                </a>
                             </div>
                         </div>
                     @endif

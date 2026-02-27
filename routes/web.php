@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\CartController;
+use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProfileController;
@@ -42,6 +43,32 @@ Route::middleware('auth')->group(function () {
     Route::patch('/cart/{item}', [CartController::class, 'update'])->name('cart.update');
     Route::delete('/cart/{item}', [CartController::class, 'destroy'])->name('cart.destroy');
     Route::delete('/cart', [CartController::class, 'clear'])->name('cart.clear');
+
+    /*
+    |--------------------------------------------------------------------------
+    | Checkout Routes
+    |--------------------------------------------------------------------------
+    | Flow: Cart → Checkout → Payment
+    | Checkout page menampilkan ringkasan dan form alamat pengiriman.
+    */
+    Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout.index');
+    Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
+
+    /*
+    |--------------------------------------------------------------------------
+    | Payment Routes (Placeholder - Phase 8)
+    |--------------------------------------------------------------------------
+    | Route sementara untuk redirect setelah checkout.
+    | Akan diimplementasi lengkap di Phase 8.
+    */
+    Route::get('/orders/{order}/payment', function (\App\Models\Order $order) {
+        // Pastikan order milik user yang login
+        if ($order->user_id !== auth()->id()) {
+            abort(403);
+        }
+        // Placeholder: tampilkan info order sementara
+        return view('orders.payment-placeholder', compact('order'));
+    })->name('payment.create');
 });
 
 require __DIR__.'/auth.php';

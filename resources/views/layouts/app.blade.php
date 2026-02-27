@@ -78,7 +78,23 @@
 </nav>
 
 <main class="pt-24 pb-10">
-    @yield('content')
+    {{-- Header slot for page title (component syntax) --}}
+    @isset($header)
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-6">
+            <div class="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg">
+                <div class="px-4 py-5 sm:px-6">
+                    {{ $header }}
+                </div>
+            </div>
+        </div>
+    @endisset
+
+    {{-- Content: support both component ($slot) and extends (@yield) syntax --}}
+    @isset($slot)
+        {{ $slot }}
+    @else
+        @yield('content')
+    @endisset
 </main>
 
 </body>

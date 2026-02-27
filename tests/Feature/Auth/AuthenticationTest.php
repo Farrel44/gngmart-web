@@ -17,6 +17,10 @@ class AuthenticationTest extends TestCase
         $response->assertStatus(200);
     }
 
+    /**
+     * Setelah login sukses, user redirect ke home (katalog produk).
+     * E-commerce UX: langsung lihat produk, bukan dashboard kosong.
+     */
     public function test_users_can_authenticate_using_the_login_screen(): void
     {
         $user = User::factory()->create();
@@ -27,7 +31,7 @@ class AuthenticationTest extends TestCase
         ]);
 
         $this->assertAuthenticated();
-        $response->assertRedirect(route('dashboard', absolute: false));
+        $response->assertRedirect(route('home', absolute: false));
     }
 
     public function test_users_can_not_authenticate_with_invalid_password(): void

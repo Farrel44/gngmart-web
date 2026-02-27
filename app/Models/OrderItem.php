@@ -39,4 +39,12 @@ class OrderItem extends Model
     {
         return $this->belongsTo(Product::class);
     }
+
+    /**
+     * Hitung subtotal item (quantity × price snapshot).
+     */
+    public function getSubtotal(): float
+    {
+        return $this->quantity * (float) $this->price;
+    }
 }

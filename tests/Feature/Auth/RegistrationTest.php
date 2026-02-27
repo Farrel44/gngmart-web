@@ -16,6 +16,10 @@ class RegistrationTest extends TestCase
         $response->assertStatus(200);
     }
 
+    /**
+     * User baru langsung ke home setelah daftar.
+     * E-commerce UX: langsung bisa belanja, bukan lihat dashboard kosong.
+     */
     public function test_new_users_can_register(): void
     {
         $response = $this->post('/register', [
@@ -27,6 +31,6 @@ class RegistrationTest extends TestCase
         ]);
 
         $this->assertAuthenticated();
-        $response->assertRedirect(route('dashboard', absolute: false));
+        $response->assertRedirect(route('home', absolute: false));
     }
 }
