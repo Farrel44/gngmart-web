@@ -7,7 +7,7 @@
     @vite('resources/css/app.css')
 </head>
 
-<body class="bg-gray-100 text-gray-800">
+<body class="bg-gray-100 text-gray-800 scroll-pt-24">
 
 <nav class="bg-white shadow-md fixed top-0 left-0 w-full z-50">
     <div class="max-w-screen-xl mx-auto px-6">

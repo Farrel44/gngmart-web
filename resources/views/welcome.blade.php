@@ -4,20 +4,114 @@
 
 <div class="max-w-screen-xl mx-auto px-6">
 
-    <div class="bg-red-500 rounded-3xl p-10 text-white mb-12 shadow-lg">
-        <h1 class="text-3xl font-bold mb-3">
-            Paket Keluarga Hemat Minggu Ini!
-        </h1>
+    <!-- Carousel Banner -->
+    <div class="relative rounded-3xl mb-12 shadow-lg overflow-hidden mt-20" id="carousel">
+        <!-- Slides -->
+        <div class="carousel-container relative h-64">
+            <!-- Slide 1 -->
+            <div class="carousel-slide absolute inset-0 rounded-3xl p-10 text-white bg-gradient-to-r from-red-500 to-red-300 flex flex-col justify-center transition-opacity duration-500 opacity-100"
+                 style="transition: opacity 0.5s ease-in-out;">
+                <h1 class="text-3xl font-bold mb-3">
+                    Paket Keluarga Hemat Minggu Ini!
+                </h1>
 
-        <p class="text-lg mb-6">
-            Belanja lebih banyak, hemat lebih banyak!
-        </p>
+                <p class="text-lg mb-6">
+                    Belanja lebih banyak, hemat lebih banyak!
+                </p>
 
-        <a href="#"
-           class="bg-white text-red-500 font-semibold px-6 py-3 rounded-full hover:bg-gray-200 transition">
-            Lihat Promo →
-        </a>
+                <a href="#"
+                   class="bg-white text-red-500 font-semibold px-6 py-3 rounded-full hover:bg-gray-200 transition w-fit">
+                    Lihat Promo →
+                </a>
+            </div>
+
+            <!-- Slide 2 -->
+            <div class="carousel-slide absolute inset-0 rounded-3xl p-10 text-white bg-gradient-to-r from-orange-500 to-orange-300 flex flex-col justify-center transition-opacity duration-500 opacity-0"
+                 style="transition: opacity 0.5s ease-in-out;">
+                <h1 class="text-3xl font-bold mb-3">
+                    Diskon Spesial Buah Segar!
+                </h1>
+
+                <p class="text-lg mb-6">
+                    Dapatkan potongan hingga 40% untuk semua buah pilihan!
+                </p>
+
+                <a href="#"
+                   class="bg-white text-orange-500 font-semibold px-6 py-3 rounded-full hover:bg-gray-200 transition w-fit">
+                    Belanja Sekarang →
+                </a>
+            </div>
+
+            <!-- Slide 3 -->
+            <div class="carousel-slide absolute inset-0 rounded-3xl p-10 text-white bg-gradient-to-r from-rose-500 to-pink-400 flex flex-col justify-center transition-opacity duration-500 opacity-0"
+                 style="transition: opacity 0.5s ease-in-out;">
+                <h1 class="text-3xl font-bold mb-3">
+                    Promo Member Eksklusif!
+                </h1>
+
+                <p class="text-lg mb-6">
+                    Nikmati keuntungan menjadi member setia kami dengan cashback menarik.
+                </p>
+
+                <a href="#"
+                   class="bg-white text-rose-500 font-semibold px-6 py-3 rounded-full hover:bg-gray-200 transition w-fit">
+                    Daftar Sekarang →
+                </a>
+            </div>
+        </div>
+
+        <!-- Dots Indicator -->
+        <div class="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2">
+            <button class="carousel-dot w-3 h-3 rounded-full bg-red-600 transition-all cursor-pointer" data-index="0"></button>
+            <button class="carousel-dot w-3 h-3 rounded-full bg-gray-300 transition-all cursor-pointer" data-index="1"></button>
+            <button class="carousel-dot w-3 h-3 rounded-full bg-gray-300 transition-all cursor-pointer" data-index="2"></button>
+        </div>
     </div>
+
+    <script>
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.carousel-slide');
+        const dots = document.querySelectorAll('.carousel-dot');
+        const totalSlides = slides.length;
+
+        function showSlide(index) {
+            // Hide all slides
+            slides.forEach(slide => {
+                slide.classList.remove('opacity-100');
+                slide.classList.add('opacity-0');
+            });
+
+            // Remove active dot style
+            dots.forEach(dot => {
+                dot.classList.remove('bg-red-600');
+                dot.classList.add('bg-gray-300');
+            });
+
+            // Show current slide
+            slides[index].classList.remove('opacity-0');
+            slides[index].classList.add('opacity-100');
+
+            // Highlight current dot
+            dots[index].classList.remove('bg-gray-300');
+            dots[index].classList.add('bg-red-600');
+        }
+
+        function nextSlide() {
+            currentSlide = (currentSlide + 1) % totalSlides;
+            showSlide(currentSlide);
+        }
+
+        // Dot click handlers
+        dots.forEach((dot, index) => {
+            dot.addEventListener('click', () => {
+                currentSlide = index;
+                showSlide(currentSlide);
+            });
+        });
+
+        // Auto rotate every 5 seconds
+        setInterval(nextSlide, 5000);
+    </script>
 
     <h2 class="text-2xl font-bold text-gray-800 mb-6">
     Kategori
@@ -82,50 +176,65 @@
 </div>
 
 
-    <h2 class="text-2xl font-bold text-gray-800 mb-6">
-        Produk Terbaru
+    <div class="flex items-center justify-between mb-6">
+    <h2 class="text-2xl font-bold text-gray-800">
+        Rekomendasi Mingguan
     </h2>
+    <a href="#" class="text-blue-600 text-sm font-semibold hover:underline">
+        Lihat Semua
+    </a>
+</div>
 
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-20">
+<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6 mb-20">
 
-        <div class="bg-white rounded-2xl shadow hover:shadow-lg p-4">
-            <div class="h-40 bg-gray-200 rounded-xl mb-4"></div>
-            <h3 class="font-semibold text-gray-800 text-sm mb-1">Indomie Goreng</h3>
-            <p class="text-red-500 font-bold mb-3 text-sm">Rp 3.500</p>
-            <button class="w-full bg-red-500 text-white py-2 rounded-xl text-sm hover:bg-red-600 transition">
-                + Keranjang
-            </button>
-        </div>
+    @php
+        $products = [
+            ['image'=>'apel.png','label'=>'SEGAR','name'=>'Apel Fuji Premium','weight'=>'1 kg','price'=>'45.000'],
+            ['image'=>'susu.png','label'=>'SEGAR','name'=>'Susu Segar Ultra','weight'=>'1 Liter','price'=>'18.500'],
+            ['image'=>'roti.png','label'=>'PROMO','name'=>'Roti Gandum Sehat','weight'=>'500 g','price'=>'22.000'],
+            ['image'=>'ayam.png','label'=>'SEGAR','name'=>'Daging Ayam Fillet','weight'=>'500 g','price'=>'35.000'],
+            ['image'=>'jusjeruk.png','label'=>'MINUMAN','name'=>'Jus Jeruk Segar','weight'=>'250 ml','price'=>'25.000'],
+            ['image'=>'cookies.png','label'=>'PROMO','name'=>'Cookies Cokelat Chip','weight'=>'300 g','price'=>'28.500'],
+            ['image'=>'https://images.unsplash.com/photo-1590080876411-37e27e95c925?w=400&h=400&fit=crop','label'=>'SEGAR','name'=>'Tomat Segar Organik','weight'=>'500 g','price'=>'15.000'],
+            ['image'=>'https://images.unsplash.com/photo-1581056771550-2173dba999ef?w=400&h=400&fit=crop','label'=>'SEGAR','name'=>'Yogurt Greek Plain','weight'=>'450 g','price'=>'32.000'],
+            ['image'=>'https://images.unsplash.com/photo-1599599810694-a4a2d5f98e6e?w=400&h=400&fit=crop','label'=>'PROMO','name'=>'Mi Instan Goreng','weight'=>'5 pcs','price'=>'12.500'],
+            ['image'=>'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&h=400&fit=crop','label'=>'SEGAR','name'=>'Salmon Fillet Segar','weight'=>'300 g','price'=>'85.000'],
+            ['image'=>'https://images.unsplash.com/photo-1600271886742-f049cd1f3033?w=400&h=400&fit=crop','label'=>'MINUMAN','name'=>'Teh Hijau Botol','weight'=>'500 ml','price'=>'8.500'],
+            ['image'=>'https://images.unsplash.com/photo-1585704032915-c3400ca199e7?w=400&h=400&fit=crop','label'=>'PROMO','name'=>'Keripik Kentang BBQ','weight'=>'150 g','price'=>'16.000'],
+        ];
+    @endphp
 
-        <div class="bg-white rounded-2xl shadow hover:shadow-lg p-4">
-            <div class="h-40 bg-gray-200 rounded-xl mb-4"></div>
-            <h3 class="font-semibold text-gray-800 text-sm mb-1">Aqua 600ml</h3>
-            <p class="text-red-500 font-bold mb-3 text-sm">Rp 4.000</p>
-            <button class="w-full bg-red-500 text-white py-2 rounded-xl text-sm hover:bg-red-600 transition">
-                + Keranjang
-            </button>
-        </div>
+    @foreach($products as $product)
+    <div class="bg-white rounded-2xl shadow-sm hover:shadow-md transition p-4">
 
-        <div class="bg-white rounded-2xl shadow hover:shadow-lg p-4">
-            <div class="h-40 bg-gray-200 rounded-xl mb-4"></div>
-            <h3 class="font-semibold text-gray-800 text-sm mb-1">Sabun Lifebuoy</h3>
-            <p class="text-red-500 font-bold mb-3 text-sm">Rp 6.000</p>
-            <button class="w-full bg-red-500 text-white py-2 rounded-xl text-sm hover:bg-red-600 transition">
-                + Keranjang
-            </button>
-        </div>
+        <img src="{{ Str::startsWith($product['image'], ['http://','https://']) ? $product['image'] : asset('images/products/' . $product['image']) }}" 
+             alt="{{ $product['name'] }}"
+             class="h-32 w-full object-cover rounded-xl mb-4 bg-gray-200">
 
-        <div class="bg-white rounded-2xl shadow hover:shadow-lg p-4">
-            <div class="h-40 bg-gray-200 rounded-xl mb-4"></div>
-            <h3 class="font-semibold text-gray-800 text-sm mb-1">Beras 5kg</h3>
-            <p class="text-red-500 font-bold mb-3 text-sm">Rp 65.000</p>
-            <button class="w-full bg-red-500 text-white py-2 rounded-xl text-sm hover:bg-red-600 transition">
-                + Keranjang
-            </button>
-        </div>
+        <span class="text-xs font-bold 
+            {{ $product['label'] == 'PROMO' ? 'text-orange-500' : 
+               ($product['label'] == 'MINUMAN' ? 'text-blue-500' : 'text-green-500') }}">
+            {{ $product['label'] }}
+        </span>
+
+        <h3 class="font-semibold text-gray-800 text-sm mt-1">
+            {{ $product['name'] }}
+        </h3>
+
+        <p class="text-xs text-gray-500 mb-2">
+            {{ $product['weight'] }}
+        </p>
+
+        <p class="text-green-600 font-bold mb-3">
+            Rp {{ $product['price'] }}
+        </p>
+
+        <button class="w-full bg-red-600 text-white py-2 rounded-full text-sm hover:bg-red-700 transition">
+            Beli
+        </button>
 
     </div>
+    @endforeach
 
 </div>
 
-@endsection
