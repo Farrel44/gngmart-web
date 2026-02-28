@@ -301,38 +301,9 @@
         </div>
     </div>
 
-    <!-- Footer -->
-    <footer class="bg-gray-100 mt-20 py-12">
-        <div class="max-w-screen-xl mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div>
-                <img src="{{ asset('images/logo.png') }}" alt="GnG Mart" class="h-10 mb-4">
-                <p class="text-gray-600">Belanja kebutuhan keluarga dengan mudah, cepat, dan hemat!</p>
-            </div>
-            <div>
-                <h3 class="font-semibold mb-3">Kategori</h3>
-                <ul class="text-gray-600 space-y-1">
-                    <li>Makanan dan Minuman</li>
-                    <li>Kebutuhan Rumah Tangga</li>
-                    <li>Aksesoris</li>
-                    <li>Alat Tulis</li>
-                    <li>Kesehatan</li>
-                    <li>Kecantikan</li>
-                </ul>
-            </div>
-            <div>
-                <h3 class="font-semibold mb-3">Bantuan</h3>
-                <ul class="text-gray-600 space-y-1">
-                    <li>Cara Belanja</li>
-                    <li>Tentang GnG Mart</li>
-                </ul>
-            </div>
-            <div>
-                <h3 class="font-semibold mb-3">Hubungi Kami</h3>
-                <p class="text-gray-600 flex items-center gap-2"><span class="text-blue-500">📞</span> 0800-123-4567</p>
-            </div>
-        </div>
-        <div class="text-center text-gray-500 mt-8">
-            © 2026 GnG Mart. Semua hak dilindungi.
-        </div>
-    </footer>
+{{-- Footer disediakan oleh layouts/app.blade.php --}}
+
+</div>
+
+@endsection
 

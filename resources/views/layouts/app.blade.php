@@ -3,71 +3,93 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>GnG Mart</title>
-    @vite('resources/css/app.css')
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.bunny.net">
+    <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700&display=swap" rel="stylesheet" />
+
+    <!-- CSS + JS (Alpine.js loaded via app.js) -->
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 
-<body class="bg-gray-100 text-gray-800">
+<body class="bg-white text-gray-800 font-sans antialiased min-h-screen flex flex-col">
 
+{{--
+    Navbar - Responsive navigation bar
+    Logo diperbesar, search button berbentuk lingkaran, keranjang hanya untuk user login
+--}}
 <nav class="bg-white shadow-md fixed top-0 left-0 w-full z-50">
     <div class="max-w-screen-xl mx-auto px-6">
         <div class="flex items-center justify-between h-16">
 
-            <!-- Logo -->
-            <a href="{{ url('/') }}" class="flex items-center">
-            <img src="{{ asset('images/logo.png') }}"
-            alt="GnG Mart"
-            class="h-14 w-auto object-contain">
+            <!-- Logo (diperbesar agar proporsional dengan navbar) -->
+            <a href="{{ url('/') }}" class="flex-shrink-0 flex items-center">
+                <img src="{{ asset('images/logo.png') }}"
+                     alt="GnG Mart"
+                     class="h-20 w-auto object-contain">
             </a>
 
-            <!-- Search -->
+            <!-- Search Bar (desktop only) -->
             <div class="flex-1 mx-10 hidden md:block">
-                <div class="relative">
-                    <input type="text"
-                        placeholder="Cari produk favorit Anda..."
-                        class="w-full border border-gray-300 rounded-full px-5 py-2 pr-14 text-sm text-gray-700 focus:ring-2 focus:ring-red-500 focus:outline-none">
+                <form action="{{ route('products.index') }}" method="GET" class="w-full">
+                    <div class="relative">
+                        <input type="text"
+                               name="search"
+                               value="{{ request('search') }}"
+                               placeholder="Cari produk favorit Anda..."
+                               class="w-full border border-gray-300 rounded-full px-5 py-2.5 pr-14 text-sm text-gray-700 focus:ring-2 focus:ring-red-500 focus:outline-none">
 
-                    <button
-                        class="absolute right-2 top-1/2 -translate-y-1/2 bg-red-600 text-white px-4 py-1 rounded-full hover:bg-red-700 transition">
-                        🔍
-                    </button>
-                </div>
+                        <!-- Tombol search berbentuk lingkaran sempurna -->
+                        <button type="submit"
+                                class="absolute right-1.5 top-1/2 -translate-y-1/2 bg-red-600 text-white w-9 h-9 rounded-full flex items-center justify-center hover:bg-red-700 transition">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                            </svg>
+                        </button>
+                    </div>
+                </form>
             </div>
 
             <!-- Right Menu -->
             <div class="flex items-center gap-6">
 
-                <!-- Cart -->
-                <a href="#" class="flex items-center gap-1 hover:text-red-600 transition">
-                    <span class="text-xl">🛒</span>
-                    <span class="text-sm font-medium">Keranjang</span>
-                </a>
+                {{-- Keranjang hanya tampil untuk user yang sudah login --}}
+                @auth
+                    <a href="{{ route('cart.index') }}" class="flex items-center gap-1 hover:text-red-600 transition">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z"/>
+                        </svg>
+                        <span class="text-sm font-medium">Keranjang</span>
+                    </a>
+                @endauth
 
-                <!-- Guest -->
+                <!-- Guest: tampilkan tombol Masuk & Daftar kecuali di halaman auth -->
                 @guest
                     @if (!request()->routeIs('login') && !request()->routeIs('register'))
                         <a href="{{ route('login') }}"
-                           class="px-4 py-2 border border-red-600 text-red-600 rounded-full hover:bg-red-600 hover:text-white transition">
+                           class="px-4 py-2 border border-red-600 text-red-600 rounded-full hover:bg-red-600 hover:text-white transition text-sm font-medium">
                             Masuk
                         </a>
-
                         <a href="{{ route('register') }}"
-                           class="px-4 py-2 bg-red-600 text-white rounded-full hover:bg-red-700 transition">
+                           class="px-4 py-2 bg-red-600 text-white rounded-full hover:bg-red-700 transition text-sm font-medium">
                             Daftar
                         </a>
                     @endif
                 @endguest
 
-                <!-- Auth -->
+                <!-- Authenticated user menu -->
                 @auth
-                    <span class="text-sm font-medium">
+                    <span class="text-sm font-medium text-gray-700">
                         Halo, {{ auth()->user()->name }}
                     </span>
-
                     <form method="POST" action="{{ route('logout') }}" class="inline">
                         @csrf
                         <button type="submit"
-                            class="px-4 py-1.5 bg-red-500 text-white rounded-full hover:bg-red-600 transition">
+                                class="px-4 py-1.5 bg-red-500 text-white rounded-full hover:bg-red-600 transition text-sm font-medium">
                             Logout
                         </button>
                     </form>
@@ -82,6 +104,89 @@
 <main class="pt-24 pb-10">
     @yield('content')
 </main>
+
+{{--
+    Footer - Logo, kategori produk, bantuan, kontak, dan copyright
+    Ditampilkan di semua halaman yang menggunakan layout app
+--}}
+<footer class="bg-white border-t border-gray-200 mt-auto">
+    <div class="max-w-screen-xl mx-auto px-6 py-10">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+
+            {{-- Kolom 1: Logo & deskripsi --}}
+            <div>
+                <a href="{{ url('/') }}" class="inline-block mb-3">
+                    <img src="{{ asset('images/logo.png') }}" alt="GnG Mart" class="h-14 w-auto object-contain">
+                </a>
+                <p class="text-sm text-gray-500 leading-relaxed">
+                    GnG Mart adalah toko online terpercaya yang menyediakan berbagai kebutuhan harian dengan harga terjangkau.
+                </p>
+            </div>
+
+            {{-- Kolom 2: Kategori produk --}}
+            <div>
+                <h4 class="text-sm font-semibold text-gray-800 mb-3">Kategori</h4>
+                <ul class="space-y-2">
+                    <li><a href="{{ route('products.index') }}?category=makanan" class="text-sm text-gray-500 hover:text-red-600 transition">Makanan dan Minuman</a></li>
+                    <li><a href="{{ route('products.index') }}?category=kebutuhan-rumah-tangga" class="text-sm text-gray-500 hover:text-red-600 transition">Kebutuhan Rumah Tangga</a></li>
+                    <li><a href="{{ route('products.index') }}?category=aksesoris" class="text-sm text-gray-500 hover:text-red-600 transition">Aksesoris</a></li>
+                    <li><a href="{{ route('products.index') }}?category=alat-tulis" class="text-sm text-gray-500 hover:text-red-600 transition">Alat Tulis</a></li>
+                    <li><a href="{{ route('products.index') }}?category=kesehatan" class="text-sm text-gray-500 hover:text-red-600 transition">Kesehatan</a></li>
+                    <li><a href="{{ route('products.index') }}?category=kecantikan" class="text-sm text-gray-500 hover:text-red-600 transition">Kecantikan</a></li>
+                </ul>
+            </div>
+
+            {{-- Kolom 3: Bantuan --}}
+            <div>
+                <h4 class="text-sm font-semibold text-gray-800 mb-3">Bantuan</h4>
+                <ul class="space-y-2">
+                    <li><a href="#" class="text-sm text-gray-500 hover:text-red-600 transition">Cara Belanja</a></li>
+                    <li><a href="#" class="text-sm text-gray-500 hover:text-red-600 transition">Tentang GnG Mart</a></li>
+                    <li><a href="#" class="text-sm text-gray-500 hover:text-red-600 transition">Pengiriman</a></li>
+                    <li><a href="#" class="text-sm text-gray-500 hover:text-red-600 transition">FAQ</a></li>
+                </ul>
+            </div>
+
+            {{-- Kolom 4: Kontak --}}
+            <div>
+                <h4 class="text-sm font-semibold text-gray-800 mb-3">Kontak</h4>
+                <ul class="space-y-2">
+                    <li class="flex items-center gap-2 text-sm text-gray-500">
+                        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                        </svg>
+                        support@gngmart.com
+                    </li>
+                    <li class="flex items-center gap-2 text-sm text-gray-500">
+                        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
+                        </svg>
+                        (021) 123-4567
+                    </li>
+                    <li class="flex items-start gap-2 text-sm text-gray-500">
+                        <svg class="w-4 h-4 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        </svg>
+                        Jl. Contoh No. 123, Jakarta
+                    </li>
+                </ul>
+            </div>
+
+        </div>
+
+        {{-- Copyright --}}
+        <div class="mt-8 pt-6 border-t border-gray-200">
+            <p class="text-sm text-gray-400 text-center">
+                &copy; {{ date('Y') }} GnG Mart. All rights reserved.
+            </p>
+        </div>
+    </div>
+</footer>
 
 </body>
 </html>
