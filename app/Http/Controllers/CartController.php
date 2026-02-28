@@ -68,6 +68,12 @@ class CartController extends Controller
             ]);
         }
 
+        // "Beli Sekarang" flow: redirect ke checkout setelah add to cart
+        if ($request->input('redirect') === 'checkout') {
+            return redirect()->route('checkout.index')
+                ->with('success', 'Produk berhasil ditambahkan ke keranjang.');
+        }
+
         return redirect()->route('cart.index')
             ->with('success', 'Produk berhasil ditambahkan ke keranjang.');
     }
