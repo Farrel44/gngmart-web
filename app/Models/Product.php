@@ -2,9 +2,11 @@
 
 namespace App\Models;
 
+use App\Services\PriceCalculationService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
 
@@ -91,6 +93,14 @@ class Product extends Model
         return $this->hasMany(OrderItem::class);
     }
 
+    /**
+     * Relasi: promosi yang berlaku langsung untuk produk ini
+     */
+    public function promotions(): BelongsToMany
+    {
+        return $this->belongsToMany(Promotion::class, 'promotion_product');
+    }
+
     // === Helper Methods untuk Harga & Diskon ===
 
     /**
@@ -106,23 +116,34 @@ class Product extends Model
 
     /**
      * Dapatkan harga efektif yang harus dibayar customer.
-     * Jika ada diskon valid, return harga diskon. Jika tidak, return harga normal.
+     *
+     * Prioritas:
+     * 1. Promosi aktif (persentase diskon tertinggi)
+     * 2. discount_price manual (legacy support)
+     * 3. price (harga asli)
+     *
+     * Menggunakan PriceCalculationService untuk logika bisnis terpusat.
      */
     public function getEffectivePrice(): float
     {
-        return $this->hasDiscount() ? (float) $this->discount_price : (float) $this->price;
+        return app(PriceCalculationService::class)->calculatePrice($this);
     }
 
     /**
-     * Hitung persentase diskon untuk ditampilkan di UI.
-     * Contoh: harga 100.000, diskon 75.000 → return 25 (%)
+     * Hitung persentase diskon efektif untuk ditampilkan di UI.
+     * Memperhitungkan promosi aktif dan discount_price legacy.
      */
     public function getDiscountPercentage(): int
     {
-        if (! $this->hasDiscount()) {
-            return 0;
-        }
+        return app(PriceCalculationService::class)->getDiscountPercentage($this);
+    }
 
-        return (int) round((($this->price - $this->discount_price) / $this->price) * 100);
+    /**
+     * Dapatkan promosi aktif terbaik (diskon tertinggi) untuk produk ini.
+     * Memeriksa promosi langsung pada produk DAN promosi pada kategorinya.
+     */
+    public function getBestActivePromotion(): ?Promotion
+    {
+        return app(PriceCalculationService::class)->getBestPromotion($this);
     }
 }

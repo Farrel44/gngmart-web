@@ -20,15 +20,14 @@
     Navbar - Responsive navigation bar
     Logo diperbesar, search button berbentuk lingkaran, keranjang hanya untuk user login
 --}}
-<nav class="bg-white shadow-md fixed top-0 left-0 w-full z-50">
+<nav class="bg-white shadow-ld fixed top-0 left-0 w-full z-50">
     <div class="max-w-screen-xl mx-auto px-6">
-        <div class="flex items-center justify-between h-16">
-
+        <div class="flex items-center justify-between py-4">
             <!-- Logo (diperbesar agar proporsional dengan navbar) -->
             <a href="{{ url('/') }}" class="flex-shrink-0 flex items-center">
                 <img src="{{ asset('images/logo.png') }}"
                      alt="GnG Mart"
-                     class="h-20 w-auto object-contain">
+                     class="h-12 w-auto object-contain">
             </a>
 
             <!-- Search Bar (desktop only) -->
@@ -56,18 +55,18 @@
             <!-- Right Menu -->
             <div class="flex items-center gap-6">
 
-                {{-- Keranjang hanya tampil untuk user yang sudah login --}}
+                {{-- Keranjang: icon di atas, teks di bawah (hanya untuk user login) --}}
                 @auth
-                    <a href="{{ route('cart.index') }}" class="flex items-center gap-1 hover:text-red-600 transition">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <a href="{{ route('cart.index') }}" class="flex flex-col items-center hover:text-red-600 transition">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                   d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z"/>
                         </svg>
-                        <span class="text-sm font-medium">Keranjang</span>
+                        <span class="text-xs font-medium mt-0.5">Keranjang</span>
                     </a>
                 @endauth
 
-                <!-- Guest: tampilkan tombol Masuk & Daftar kecuali di halaman auth -->
+                <!-- Guest: tombol Masuk & Daftar (disembunyikan di halaman auth) -->
                 @guest
                     @if (!request()->routeIs('login') && !request()->routeIs('register'))
                         <a href="{{ route('login') }}"
@@ -81,18 +80,71 @@
                     @endif
                 @endguest
 
-                <!-- Authenticated user menu -->
+                {{-- Akun dropdown: icon + nama user, hover untuk navigasi dan logout --}}
                 @auth
-                    <span class="text-sm font-medium text-gray-700">
-                        Halo, {{ auth()->user()->name }}
-                    </span>
-                    <form method="POST" action="{{ route('logout') }}" class="inline">
-                        @csrf
-                        <button type="submit"
-                                class="px-4 py-1.5 bg-red-500 text-white rounded-full hover:bg-red-600 transition text-sm font-medium">
-                            Logout
+                    <div class="relative" x-data="{ open: false }" @mouseenter="open = true" @mouseleave="open = false">
+                        <button @click="open = !open"
+                                class="flex flex-col items-center hover:text-red-600 transition focus:outline-none">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                            </svg>
+                            <span class="text-xs font-medium mt-0.5 max-w-[80px] truncate">{{ auth()->user()->name ? explode(' ', auth()->user()->name)[0] : '' }}</span>
                         </button>
-                    </form>
+
+                        <!-- Dropdown menu -->
+                        <div x-show="open"
+                             x-transition:enter="transition ease-out duration-150"
+                             x-transition:enter-start="opacity-0 -translate-y-1"
+                             x-transition:enter-end="opacity-100 translate-y-0"
+                             x-transition:leave="transition ease-in duration-100"
+                             x-transition:leave-start="opacity-100 translate-y-0"
+                             x-transition:leave-end="opacity-0 -translate-y-1"
+                             class="absolute right-0 mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-100 py-1 z-50"
+                             style="display: none;">
+
+                            <a href="{{ route('dashboard') }}"
+                               class="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition">
+                                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                          d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
+                                </svg>
+                                Dashboard
+                            </a>
+
+                            <a href="{{ route('profile.edit') }}"
+                               class="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition">
+                                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                          d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                                </svg>
+                                Profil Saya
+                            </a>
+
+                            <a href="{{ route('orders.index') }}"
+                               class="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition">
+                                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                          d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                                </svg>
+                                Pesanan Saya
+                            </a>
+
+                            <div class="border-t border-gray-100 my-1"></div>
+
+                            <form method="POST" action="{{ route('logout') }}">
+                                @csrf
+                                <button type="submit"
+                                        class="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition text-left">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                              d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                                    </svg>
+                                    Keluar
+                                </button>
+                            </form>
+                        </div>
+                    </div>
                 @endauth
 
             </div>
@@ -101,7 +153,7 @@
     </div>
 </nav>
 
-<main class="pt-24 pb-10">
+<main class="pt-12 pb-10">
     @yield('content')
 </main>
 

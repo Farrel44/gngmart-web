@@ -2,116 +2,71 @@
 
 @section('content')
 
-<div class="max-w-screen-xl mx-auto px-6">
+<div class="max-w-screen-xl mx-auto px-2">
 
-    <!-- Carousel Banner -->
-    <div class="relative rounded-3xl mb-12 shadow-lg overflow-hidden mt-20" id="carousel">
-        <!-- Slides -->
-        <div class="carousel-container relative h-64">
-            <!-- Slide 1 -->
-            <div class="carousel-slide absolute inset-0 rounded-3xl p-10 text-white bg-gradient-to-r from-red-500 to-red-300 flex flex-col justify-center transition-opacity duration-500 opacity-100"
-                 style="transition: opacity 0.5s ease-in-out;">
-                <h1 class="text-3xl font-bold mb-3">
-                    Paket Keluarga Hemat Minggu Ini!
-                </h1>
+    {{-- Carousel Banner: dinamis dari database, dikelola admin via Filament --}}
+    @if($slides->count() > 0)
+    <div class="relative rounded-3xl mb-12 shadow-lg overflow-hidden mt-20" id="carousel"
+         x-data="carousel({{ $slides->count() }})" x-init="startAutoPlay()">
 
-                <p class="text-lg mb-6">
-                    Belanja lebih banyak, hemat lebih banyak!
-                </p>
+        {{-- Slide container --}}
+        <div class="carousel-container relative h-72 md:h-80">
+            @foreach($slides as $index => $slide)
+                <div class="carousel-slide absolute inset-0 rounded-3xl overflow-hidden flex items-center transition-opacity duration-500"
+                     :class="activeSlide === {{ $index }} ? 'opacity-100 z-10' : 'opacity-0 z-0'">
 
-                <a href="#"
-                   class="bg-white text-red-500 font-semibold px-6 py-3 rounded-full hover:bg-gray-200 transition w-fit">
-                    Lihat Promo →
-                </a>
-            </div>
+                    {{-- Background image --}}
+                    <img src="{{ asset('storage/' . $slide->image_path) }}"
+                         alt="{{ $slide->title ?? 'Promo banner' }}"
+                         class="absolute inset-0 w-full h-full object-cover">
 
-            <!-- Slide 2 -->
-            <div class="carousel-slide absolute inset-0 rounded-3xl p-10 text-white bg-gradient-to-r from-orange-500 to-orange-300 flex flex-col justify-center transition-opacity duration-500 opacity-0"
-                 style="transition: opacity 0.5s ease-in-out;">
-                <h1 class="text-3xl font-bold mb-3">
-                    Diskon Spesial Buah Segar!
-                </h1>
+                    {{-- Overlay gradient untuk keterbacaan teks --}}
+                    <div class="absolute inset-0 bg-gradient-to-r from-black/60 via-black/30 to-transparent"></div>
 
-                <p class="text-lg mb-6">
-                    Dapatkan potongan hingga 40% untuk semua buah pilihan!
-                </p>
+                    {{-- Konten teks --}}
+                    <div class="relative z-10 px-10 md:px-16 max-w-xl">
+                        @if($slide->subtitle)
+                            <p class="text-sm font-semibold text-red-300 uppercase tracking-wide mb-2">
+                                {{ $slide->subtitle }}
+                            </p>
+                        @endif
 
-                <a href="#"
-                   class="bg-white text-orange-500 font-semibold px-6 py-3 rounded-full hover:bg-gray-200 transition w-fit">
-                    Belanja Sekarang →
-                </a>
-            </div>
+                        @if($slide->title)
+                            <h2 class="text-2xl md:text-4xl font-bold text-white mb-3 leading-tight">
+                                {{ $slide->title }}
+                            </h2>
+                        @endif
 
-            <!-- Slide 3 -->
-            <div class="carousel-slide absolute inset-0 rounded-3xl p-10 text-white bg-gradient-to-r from-rose-500 to-pink-400 flex flex-col justify-center transition-opacity duration-500 opacity-0"
-                 style="transition: opacity 0.5s ease-in-out;">
-                <h1 class="text-3xl font-bold mb-3">
-                    Promo Member Eksklusif!
-                </h1>
+                        @if($slide->description)
+                            <p class="text-white/80 text-sm md:text-base mb-6">
+                                {{ $slide->description }}
+                            </p>
+                        @endif
 
-                <p class="text-lg mb-6">
-                    Nikmati keuntungan menjadi member setia kami dengan cashback menarik.
-                </p>
-
-                <a href="#"
-                   class="bg-white text-rose-500 font-semibold px-6 py-3 rounded-full hover:bg-gray-200 transition w-fit">
-                    Daftar Sekarang →
-                </a>
-            </div>
+                        @if($slide->button_text && $slide->button_url)
+                            <a href="{{ $slide->button_url }}"
+                               class="inline-block bg-red-600 text-white font-semibold px-6 py-3 rounded-full hover:bg-red-700 transition">
+                                {{ $slide->button_text }}
+                            </a>
+                        @endif
+                    </div>
+                </div>
+            @endforeach
         </div>
 
-        <!-- Dots Indicator -->
-        <div class="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2">
-            <button class="carousel-dot w-3 h-3 rounded-full bg-red-600 transition-all cursor-pointer" data-index="0"></button>
-            <button class="carousel-dot w-3 h-3 rounded-full bg-gray-300 transition-all cursor-pointer" data-index="1"></button>
-            <button class="carousel-dot w-3 h-3 rounded-full bg-gray-300 transition-all cursor-pointer" data-index="2"></button>
-        </div>
+        {{-- Dots Indicator --}}
+        @if($slides->count() > 1)
+            <div class="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2 z-20">
+                @foreach($slides as $index => $slide)
+                    <button @click="goTo({{ $index }})"
+                            class="w-3 h-3 rounded-full transition-all cursor-pointer"
+                            :class="activeSlide === {{ $index }} ? 'bg-red-600 w-6' : 'bg-white/60 hover:bg-white/80'">
+                    </button>
+                @endforeach
+            </div>
+        @endif
     </div>
-
-    <script>
-        let currentSlide = 0;
-        const slides = document.querySelectorAll('.carousel-slide');
-        const dots = document.querySelectorAll('.carousel-dot');
-        const totalSlides = slides.length;
-
-        function showSlide(index) {
-            // Hide all slides
-            slides.forEach(slide => {
-                slide.classList.remove('opacity-100');
-                slide.classList.add('opacity-0');
-            });
-
-            // Remove active dot style
-            dots.forEach(dot => {
-                dot.classList.remove('bg-red-600');
-                dot.classList.add('bg-gray-300');
-            });
-
-            // Show current slide
-            slides[index].classList.remove('opacity-0');
-            slides[index].classList.add('opacity-100');
-
-            // Highlight current dot
-            dots[index].classList.remove('bg-gray-300');
-            dots[index].classList.add('bg-red-600');
-        }
-
-        function nextSlide() {
-            currentSlide = (currentSlide + 1) % totalSlides;
-            showSlide(currentSlide);
-        }
-
-        // Dot click handlers
-        dots.forEach((dot, index) => {
-            dot.addEventListener('click', () => {
-                currentSlide = index;
-                showSlide(currentSlide);
-            });
-        });
-
-        // Auto rotate every 5 seconds
-        setInterval(nextSlide, 5000);
-    </script>
+    @endif
 
     <h2 class="text-2xl font-bold text-gray-800 mb-6">
     Kategori
@@ -187,63 +142,70 @@
 
 <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6 mb-20">
 
-    @php
-        $products = [
-            ['slug'=>'apel-fuji-premium','image'=>'apel.png','label'=>'SEGAR','name'=>'Apel Fuji Premium','weight'=>'1 kg','price'=>'45.000'],
-            ['slug'=>'susu-segar-ultra','image'=>'susu.png','label'=>'SEGAR','name'=>'Susu Segar Ultra','weight'=>'1 Liter','price'=>'18.500'],
-            ['slug'=>'roti-gandum-sehat','image'=>'roti.png','label'=>'PROMO','name'=>'Roti Gandum Sehat','weight'=>'500 g','price'=>'22.000'],
-            ['slug'=>'daging-ayam-fillet','image'=>'ayam.png','label'=>'SEGAR','name'=>'Daging Ayam Fillet','weight'=>'500 g','price'=>'35.000'],
-            ['slug'=>'jus-jeruk-segar','image'=>'jusjeruk.png','label'=>'MINUMAN','name'=>'Jus Jeruk Segar','weight'=>'250 ml','price'=>'25.000'],
-            ['slug'=>'cookies-cokelat-chip','image'=>'cookies.png','label'=>'PROMO','name'=>'Cookies Cokelat Chip','weight'=>'300 g','price'=>'28.500'],
-            ['slug'=>'tomat-segar-organik','image'=>'tomat.png','label'=>'SEGAR','name'=>'Tomat Segar Organik','weight'=>'500 g','price'=>'15.000'],
-            ['slug'=>'yogurt-greek-plain','image'=>'yogurt.png','label'=>'SEGAR','name'=>'Yogurt Greek Plain','weight'=>'450 g','price'=>'32.000'],
-            ['slug'=>'mi-instan-goreng','image'=>'mie.png','label'=>'PROMO','name'=>'Mi Instan Goreng','weight'=>'5 pcs','price'=>'12.500'],
-            ['slug'=>'salmon-fillet-segar','image'=>'salmon.png','label'=>'SEGAR','name'=>'Salmon Fillet Segar','weight'=>'300 g','price'=>'85.000'],
-            ['slug'=>'teh-hijau-botol','image'=>'tehhijau.png','label'=>'MINUMAN','name'=>'Teh Hijau Botol','weight'=>'500 ml','price'=>'8.500'],
-            ['slug'=>'keripik-kentang-bbq','image'=>'chips.png','label'=>'PROMO','name'=>'Keripik Kentang BBQ','weight'=>'150 g','price'=>'16.000'],
-        ];
-        
-        // Create weight and label maps from products array for database products
-        $weightMap = collect($products)->keyBy('slug')->map(fn($p) => $p['weight']);
-        $labelMap = collect($products)->keyBy('slug')->map(fn($p) => $p['label']);
-    @endphp
-
     @forelse($featuredProducts as $product)
-    <a href="{{ route('products.show', $product->slug) }}" class="bg-white rounded-2xl shadow-sm hover:shadow-md transition p-4 block">
+    <a href="{{ route('products.show', $product->slug) }}" class="bg-white rounded-2xl shadow-sm hover:shadow-md transition p-4 block group">
 
         @php
-            $imageUrl = $product->images->first() 
-                ? asset($product->images->first()->image_url) 
+            $imageUrl = $product->images->first()
+                ? asset($product->images->first()->image_url)
                 : asset('images/placeholder.png');
-            
-            // Get weight and label from mapping
-            $productWeight = $weightMap[$product->slug] ?? '-';
-            $productLabel = $labelMap[$product->slug] ?? 'SEGAR';
-            
-            // Determine label color
-            $labelColor = $productLabel == 'PROMO' ? 'text-orange-500' : 
-                         ($productLabel == 'MINUMAN' ? 'text-blue-500' : 'text-green-500');
+
+            $effectivePrice = $product->getEffectivePrice();
+            $discountPct = $product->getDiscountPercentage();
+            $hasAnyDiscount = $discountPct > 0;
+            $promo = $product->getBestActivePromotion();
         @endphp
-        
-        <img src="{{ $imageUrl }}" 
-             alt="{{ $product->name }}"
-             class="h-32 w-full object-cover rounded-xl mb-4 bg-gray-200">
 
-        <span class="text-xs font-bold {{ $labelColor }}">
-            {{ $productLabel }}
-        </span>
+        <div class="relative">
+            <img src="{{ $imageUrl }}"
+                 alt="{{ $product->name }}"
+                 class="h-32 w-full object-cover rounded-xl mb-4 bg-gray-200">
 
-        <h3 class="font-semibold text-gray-800 text-sm mt-1">
+            {{-- Badge diskon jika ada promo aktif atau discount_price --}}
+            @if($hasAnyDiscount)
+                <span class="absolute top-2 left-2 bg-red-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+                    -{{ $discountPct }}%
+                </span>
+            @endif
+        </div>
+
+        {{-- Label kategori --}}
+        @if($product->category)
+            <span class="text-xs font-bold text-green-500">
+                {{ strtoupper($product->category->name) }}
+            </span>
+        @endif
+
+        <h3 class="font-semibold text-gray-800 text-sm mt-1 line-clamp-2 group-hover:text-red-600 transition">
             {{ $product->name }}
         </h3>
 
-        <p class="text-xs text-gray-500 mb-2">
-            {{ $productWeight }}
-        </p>
+        @if($product->weight)
+            <p class="text-xs text-gray-500 mb-2">{{ $product->weight }}</p>
+        @endif
 
-        <p class="text-red-600 font-bold mb-3">
-            Rp {{ number_format($product->price, 0, ',', '.') }}
-        </p>
+        {{-- Harga: tampilkan harga coret jika ada diskon --}}
+        <div class="mb-3">
+            @if($hasAnyDiscount)
+                <p class="text-xs text-gray-400 line-through">
+                    Rp {{ number_format($product->price, 0, ',', '.') }}
+                </p>
+                <p class="text-red-600 font-bold">
+                    Rp {{ number_format($effectivePrice, 0, ',', '.') }}
+                </p>
+            @else
+                <p class="text-red-600 font-bold">
+                    Rp {{ number_format($product->price, 0, ',', '.') }}
+                </p>
+            @endif
+
+            {{-- Tampilkan nama promo jika ada --}}
+            @if($promo)
+                <span class="text-[10px] bg-red-50 text-red-600 font-medium px-1.5 py-0.5 rounded mt-1 inline-block">
+                    {{ $promo->name }}
+                </span>
+            @endif
+        </div>
 
         <button class="w-full bg-red-600 text-white py-2 rounded-full text-sm hover:bg-red-700 transition" onclick="event.preventDefault();">
             Beli
@@ -251,37 +213,9 @@
 
     </a>
     @empty
-        @foreach($products as $product)
-        <a href="{{ route('products.show', $product['slug']) }}" class="bg-white rounded-2xl shadow-sm hover:shadow-md transition p-4 block">
-
-            <img src="{{ Str::startsWith($product['image'], ['http://','https://']) ? $product['image'] : asset('images/products/' . $product['image']) }}" 
-                 alt="{{ $product['name'] }}"
-                 class="h-32 w-full object-cover rounded-xl mb-4 bg-gray-200">
-
-            <span class="text-xs font-bold 
-                {{ $product['label'] == 'PROMO' ? 'text-orange-500' : 
-                   ($product['label'] == 'MINUMAN' ? 'text-blue-500' : 'text-green-500') }}">
-                {{ $product['label'] }}
-            </span>
-
-            <h3 class="font-semibold text-gray-800 text-sm mt-1">
-                {{ $product['name'] }}
-            </h3>
-
-            <p class="text-xs text-gray-500 mb-2">
-                {{ $product['weight'] }}
-            </p>
-
-            <p class="text-green-600 font-bold mb-3">
-                Rp {{ $product['price'] }}
-            </p>
-
-            <button class="w-full bg-red-600 text-white py-2 rounded-full text-sm hover:bg-red-700 transition" onclick="event.preventDefault();">
-                Beli
-            </button>
-
-        </a>
-        @endforeach
+        <div class="col-span-full text-center py-12 text-gray-500">
+            <p class="text-lg">Belum ada produk tersedia.</p>
+        </div>
     @endempty
 
 </div>
@@ -304,6 +238,44 @@
 {{-- Footer disediakan oleh layouts/app.blade.php --}}
 
 </div>
+
+{{-- Alpine.js carousel component --}}
+<script>
+    document.addEventListener('alpine:init', () => {
+        Alpine.data('carousel', (totalSlides) => ({
+            activeSlide: 0,
+            total: totalSlides,
+            timer: null,
+
+            startAutoPlay() {
+                this.timer = setInterval(() => this.next(), 5000);
+            },
+
+            stopAutoPlay() {
+                if (this.timer) clearInterval(this.timer);
+            },
+
+            resetAutoPlay() {
+                this.stopAutoPlay();
+                this.startAutoPlay();
+            },
+
+            next() {
+                this.activeSlide = (this.activeSlide + 1) % this.total;
+            },
+
+            prev() {
+                this.activeSlide = (this.activeSlide - 1 + this.total) % this.total;
+                this.resetAutoPlay();
+            },
+
+            goTo(index) {
+                this.activeSlide = index;
+                this.resetAutoPlay();
+            }
+        }));
+    });
+</script>
 
 @endsection
 
