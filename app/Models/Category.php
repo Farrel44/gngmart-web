@@ -13,7 +13,16 @@ class Category extends Model
 
     protected $fillable = [
         'name',
+        'slug',
     ];
+
+    /**
+     * Gunakan slug sebagai route key untuk URL yang SEO-friendly
+     */
+    public function getRouteKeyName(): string
+    {
+        return 'slug';
+    }
 
     /**
      * Relasi: satu kategori punya banyak produk

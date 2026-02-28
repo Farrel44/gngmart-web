@@ -69,66 +69,50 @@
     @endif
 
     <h2 class="text-2xl font-bold text-gray-800 mb-6">
-    Kategori
-</h2>
+        Kategori
+    </h2>
 
-<div class="flex gap-4 overflow-x-auto pb-4 mb-12">
+    @php
+        // SVG path data per category keyword (Heroicons outline, 24x24 viewBox)
+        // Memungkinkan icon yang sesuai untuk setiap kategori tanpa perlu kolom DB tambahan
+        $catIconPaths = [
+            'buah'    => 'M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z',
+            'daging'  => 'M15.362 5.214A8.252 8.252 0 0112 21 8.25 8.25 0 016.038 7.048 8.287 8.287 0 009 9.6a8.983 8.983 0 013.361-6.867 8.21 8.21 0 003 2.48z',
+            'minuman' => 'M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5m4.75-11.396c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19.8 15.3m-5.55-12.196c.251.023.501.05.75.082M5 14.5l-1.202 1.202c-1.232 1.232-.65 3.318 1.067 3.611A48.309 48.309 0 0012 21c2.773 0 5.491-.235 8.135-.687 1.718-.293 2.3-2.379 1.067-3.61L19.8 15.3',
+            'ringan'  => 'M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z',
+            'roti'    => 'M12 8.25v-1.5m0 1.5c-1.355 0-2.697.056-4.024.166C6.845 8.51 6 9.473 6 10.608v2.513m6-4.871c1.355 0 2.697.056 4.024.166C17.155 8.51 18 9.473 18 10.608v2.513M15 8.25v-1.5m-6 1.5v-1.5m12 9.75l-1.5.75a3.354 3.354 0 01-3 0 3.354 3.354 0 00-3 0 3.354 3.354 0 01-3 0 3.354 3.354 0 00-3 0 3.354 3.354 0 01-3 0L3 16.5m15-3.379a48.474 48.474 0 00-6-.371c-2.032 0-4.034.126-6 .371m12 0c.39.049.777.102 1.163.16 1.07.16 1.837 1.094 1.837 2.175v5.169c0 .621-.504 1.125-1.125 1.125H4.125A1.125 1.125 0 013 20.496v-5.17c0-1.08.768-2.014 1.837-2.174A47.78 47.78 0 016 13.12',
+            'dapur'   => 'M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25',
+        ];
+        $defaultIconPath = 'M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z';
+    @endphp
 
-    <div class="flex items-center gap-3 bg-red-50 hover:bg-red-100 transition px-5 py-3 rounded-full min-w-max cursor-pointer">
-        <div class="w-8 h-8 flex items-center justify-center bg-red-100 text-red-500 rounded-full">
-            🍔
-        </div>
-        <span class="text-sm font-semibold text-gray-700">
-            Makanan & Minuman
-        </span>
+    <div class="flex gap-4 overflow-x-auto pb-4 mb-12">
+        @foreach($categories as $cat)
+            @php
+                // Match category name to icon keyword
+                $lowerName = strtolower($cat->name);
+                $iconPath = $defaultIconPath;
+                foreach ($catIconPaths as $keyword => $path) {
+                    if (str_contains($lowerName, $keyword)) {
+                        $iconPath = $path;
+                        break;
+                    }
+                }
+            @endphp
+
+            <a href="{{ route('categories.show', $cat) }}"
+               class="flex items-center gap-3 bg-rose-50 hover:bg-rose-100 transition px-5 py-3 rounded-2xl min-w-max shadow-sm">
+                <div class="w-8 h-8 flex items-center justify-center bg-red-100 rounded-full flex-shrink-0">
+                    <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="{{ $iconPath }}"/>
+                    </svg>
+                </div>
+                <span class="text-sm font-semibold text-gray-700">
+                    {{ $cat->name }}
+                </span>
+            </a>
+        @endforeach
     </div>
-
-    <div class="flex items-center gap-3 bg-red-50 hover:bg-red-100 transition px-5 py-3 rounded-full min-w-max cursor-pointer">
-        <div class="w-8 h-8 flex items-center justify-center bg-red-100 text-red-500 rounded-full">
-            🏠
-        </div>
-        <span class="text-sm font-semibold text-gray-700">
-            Kebutuhan Rumah Tangga
-        </span>
-    </div>
-
-    <div class="flex items-center gap-3 bg-red-50 hover:bg-red-100 transition px-5 py-3 rounded-full min-w-max cursor-pointer">
-        <div class="w-8 h-8 flex items-center justify-center bg-red-100 text-red-500 rounded-full">
-            👜
-        </div>
-        <span class="text-sm font-semibold text-gray-700">
-            Aksesoris
-        </span>
-    </div>
-
-    <div class="flex items-center gap-3 bg-red-50 hover:bg-red-100 transition px-5 py-3 rounded-full min-w-max cursor-pointer">
-        <div class="w-8 h-8 flex items-center justify-center bg-red-100 text-red-500 rounded-full">
-            📚
-        </div>
-        <span class="text-sm font-semibold text-gray-700">
-            Alat Tulis
-        </span>
-    </div>
-
-    <div class="flex items-center gap-3 bg-red-50 hover:bg-red-100 transition px-5 py-3 rounded-full min-w-max cursor-pointer">
-        <div class="w-8 h-8 flex items-center justify-center bg-red-100 text-red-500 rounded-full">
-            💊
-        </div>
-        <span class="text-sm font-semibold text-gray-700">
-            Kesehatan
-        </span>
-    </div>
-
-    <div class="flex items-center gap-3 bg-red-50 hover:bg-red-100 transition px-5 py-3 rounded-full min-w-max cursor-pointer">
-        <div class="w-8 h-8 flex items-center justify-center bg-red-100 text-red-500 rounded-full">
-            💄
-        </div>
-        <span class="text-sm font-semibold text-gray-700">
-            Kecantikan
-        </span>
-    </div>
-
-</div>
 
 
     <div class="flex items-center justify-between mb-6">
@@ -143,7 +127,7 @@
 <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6 mb-20">
 
     @forelse($featuredProducts as $product)
-    <a href="{{ route('products.show', $product->slug) }}" class="bg-white rounded-2xl shadow-sm hover:shadow-md transition p-4 block group">
+    <a href="{{ route('products.show', $product->slug) }}" class="bg-white rounded-2xl shadow-sm hover:shadow-md transition p-4 group flex flex-col h-full">
 
         @php
             $imageUrl = $product->images->first()
@@ -207,7 +191,7 @@
             @endif
         </div>
 
-        <button class="w-full bg-red-600 text-white py-2 rounded-full text-sm hover:bg-red-700 transition" onclick="event.preventDefault();">
+        <button class="w-full bg-red-600 text-white py-2 rounded-full text-sm hover:bg-red-700 transition mt-auto" onclick="event.preventDefault();">
             Beli
         </button>
 
@@ -220,22 +204,52 @@
 
 </div>
 
-    <!-- Promo Section -->
-    <div class="max-w-screen-xl mx-auto px-6 mt-16">
-        <div class="relative bg-gradient-to-r from-green-300 via-green-400 to-green-500 rounded-3xl p-12 flex flex-col md:flex-row items-center">
-            <div class="flex-1 pr-8">
-                <h2 class="text-3xl font-bold text-gray-800 mb-4">Hemat 30% untuk Produk Organik!</h2>
-                <p class="text-gray-600 mb-6">Nikmati kesegaran alami dengan harga spesial minggu ini</p>
-                <a href="#" class="inline-block bg-red-600 text-white px-6 py-3 rounded-full hover:bg-red-700 transition">
-                    Belanja Sekarang
-                </a>
-            </div>
-            <!-- image overlaps outside green box -->
-            <img src="{{ asset('images/sayur.png') }}" alt="Promo Organik" class="absolute right-0 top-0 h-full w-auto max-w-md rounded-2xl object-cover">
-        </div>
-    </div>
+@if($promoSlide)
+<div class="max-w-screen-xl mx-auto px-6 mt-16">
+    <div class="relative bg-gradient-to-r from-green-300 via-green-400 to-green-500
+                rounded-3xl p-12 flex flex-col md:flex-row items-center overflow-hidden">
 
-{{-- Footer disediakan oleh layouts/app.blade.php --}}
+        {{-- Text --}}
+        <div class="flex-1 pr-8 z-10">
+            @if($promoSlide->subtitle)
+                <p class="text-sm font-semibold text-green-800 uppercase mb-2">
+                    {{ $promoSlide->subtitle }}
+                </p>
+            @endif
+
+            @if($promoSlide->title)
+                <h2 class="text-3xl font-bold text-gray-800 mb-4">
+                    {{ $promoSlide->title }}
+                </h2>
+            @endif
+
+            @if($promoSlide->description)
+                <p class="text-gray-700 mb-6">
+                    {{ $promoSlide->description }}
+                </p>
+            @endif
+
+            @if($promoSlide->button_text && $promoSlide->button_url)
+                <a href="{{ $promoSlide->button_url }}"
+                   class="inline-block bg-red-600 text-white px-6 py-3 rounded-full
+                          hover:bg-red-700 transition">
+                    {{ $promoSlide->button_text }}
+                </a>
+            @endif
+        </div>
+
+        {{-- Image --}}
+        @if($promoSlide->image_path)
+            <img src="{{ asset('storage/' . $promoSlide->image_path) }}"
+                 alt="{{ $promoSlide->title ?? 'Promo' }}"
+                 class="absolute right-0 top-0 h-full w-auto max-w-md
+                        object-cover rounded-2xl pointer-events-none">
+        @endif
+
+    </div>
+</div>
+@endif
+
 
 </div>
 

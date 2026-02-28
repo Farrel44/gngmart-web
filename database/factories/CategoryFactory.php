@@ -4,6 +4,7 @@ namespace Database\Factories;
 
 use App\Models\Category;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Str;
 
 /**
  * Factory untuk model Category — digunakan di testing dan seeder
@@ -16,8 +17,11 @@ class CategoryFactory extends Factory
 
     public function definition(): array
     {
+        $name = fake()->unique()->word();
+
         return [
-            'name' => fake()->unique()->word(),
+            'name' => $name,
+            'slug' => Str::slug($name),
         ];
     }
 }

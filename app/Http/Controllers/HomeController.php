@@ -23,22 +23,20 @@ class HomeController extends Controller
      */
     public function index(): View
     {
-        // Carousel slides: hanya yang aktif, diurutkan sesuai order_column
         $slides = CarouselSlide::active()->get();
 
-        // Ambil semua kategori yang punya produk (untuk navigasi kategori)
+        $promoSlide = $slides->first();
+
         $categories = Category::withCount('products')
             ->having('products_count', '>', 0)
             ->orderBy('name')
             ->get();
 
-        // Ambil produk yang masih ada stok untuk featured/showcase
-        // Eager load images dan relasi yang diperlukan untuk price calculation
         $featuredProducts = Product::with(['category', 'images'])
             ->where('stock', '>', 0)
             ->latest()
             ->get();
 
-        return view('home', compact('slides', 'categories', 'featuredProducts'));
+        return view('home', compact('slides', 'categories', 'featuredProducts', 'promoSlide'));
     }
 }

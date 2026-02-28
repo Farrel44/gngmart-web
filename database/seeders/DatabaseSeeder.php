@@ -42,7 +42,10 @@ class DatabaseSeeder extends Seeder
             'Roti & Bakery',
             'Kebutuhan Dapur',
         ])->mapWithKeys(function ($name) {
-            $cat = Category::create(['name' => $name]);
+            $cat = Category::create([
+                'name' => $name,
+                'slug' => Str::slug($name),
+            ]);
             return [$name => $cat];
         });
 

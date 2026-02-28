@@ -30,17 +30,25 @@
                      class="h-12 w-auto object-contain">
             </a>
 
-            <!-- Search Bar (desktop only) -->
-            <div class="flex-1 mx-10 hidden md:block">
-                <form action="{{ route('products.index') }}" method="GET" class="w-full">
+            <!-- Search Bar with live suggestions (desktop only) -->
+            <div class="flex-1 mx-10 hidden md:block"
+                 x-data="liveSearch()"
+                 @click.away="open = false"
+                 @keydown.escape.window="open = false">
+
+                <form @submit.prevent="goToResults()" class="w-full">
                     <div class="relative">
                         <input type="text"
-                               name="search"
-                               value="{{ request('search') }}"
+                               x-model="query"
+                               @input.debounce.300ms="fetchSuggestions()"
+                               @focus="handleFocus()"
+                               @keydown.arrow-down.prevent="highlightNext()"
+                               @keydown.arrow-up.prevent="highlightPrev()"
+                               @keydown.enter.prevent="handleEnter()"
                                placeholder="Cari produk favorit Anda..."
+                               autocomplete="off"
                                class="w-full border border-gray-300 rounded-full px-5 py-2.5 pr-14 text-sm text-gray-700 focus:ring-2 focus:ring-red-500 focus:outline-none">
 
-                        <!-- Tombol search berbentuk lingkaran sempurna -->
                         <button type="submit"
                                 class="absolute right-1.5 top-1/2 -translate-y-1/2 bg-red-600 text-white w-9 h-9 rounded-full flex items-center justify-center hover:bg-red-700 transition">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -48,6 +56,68 @@
                                       d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                             </svg>
                         </button>
+
+                        {{-- Dropdown panel suggestions --}}
+                        <div x-show="open"
+                             x-transition:enter="transition ease-out duration-150"
+                             x-transition:enter-start="opacity-0 -translate-y-1"
+                             x-transition:enter-end="opacity-100 translate-y-0"
+                             x-transition:leave="transition ease-in duration-100"
+                             x-transition:leave-start="opacity-100 translate-y-0"
+                             x-transition:leave-end="opacity-0 -translate-y-1"
+                             class="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-lg border border-gray-100 z-50 overflow-hidden"
+                             style="display: none;">
+
+                            {{-- Loading state --}}
+                            <template x-if="loading">
+                                <div class="px-4 py-6 text-center text-sm text-gray-400">
+                                    <svg class="w-5 h-5 mx-auto mb-2 animate-spin text-gray-300" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                                    </svg>
+                                    Mencari...
+                                </div>
+                            </template>
+
+                            {{-- Popular / Recommendation header --}}
+                            <template x-if="!loading && showingPopular && items.length > 0">
+                                <div class="px-4 pt-3 pb-1">
+                                    <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide">Populer</p>
+                                </div>
+                            </template>
+
+                            {{-- Suggestion items (text-only, Tokopedia style) --}}
+                            <template x-if="!loading && items.length > 0">
+                                <ul class="py-1 max-h-80 overflow-y-auto">
+                                    <template x-for="(name, index) in items" :key="index">
+                                        <li>
+                                            <button type="button"
+                                                    @click="selectSuggestion(name)"
+                                                    @mouseenter="highlighted = index"
+                                                    class="w-full flex items-center gap-3 px-4 py-2.5 text-left hover:bg-gray-50 transition"
+                                                    :class="{ 'bg-gray-50': highlighted === index }">
+                                                <svg class="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                          d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                                                </svg>
+                                                <span class="text-sm text-gray-700 truncate" x-html="highlightMatch(name)"></span>
+                                            </button>
+                                        </li>
+                                    </template>
+                                </ul>
+                            </template>
+
+                            {{-- Empty state --}}
+                            <template x-if="!loading && items.length === 0 && searched">
+                                <div class="px-4 py-6 text-center">
+                                    <svg class="w-10 h-10 mx-auto mb-2 text-gray-300" fill="none" stroke="currentColor" stroke-width="1" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/>
+                                    </svg>
+                                    <p class="text-sm text-gray-500">Tidak ada produk ditemukan</p>
+                                </div>
+                            </template>
+
+                        </div>
                     </div>
                 </form>
             </div>
@@ -239,6 +309,125 @@
         </div>
     </div>
 </footer>
+
+{{-- Live search Alpine.js component --}}
+<script>
+    function liveSearch() {
+        return {
+            query: '',
+            items: [],
+            popular: [],
+            open: false,
+            loading: false,
+            searched: false,
+            showingPopular: false,
+            highlighted: -1,
+            popularLoaded: false,
+
+            async handleFocus() {
+                if (this.query.trim().length >= 2 && this.items.length > 0) {
+                    this.open = true;
+                    return;
+                }
+                if (this.query.trim().length < 2) {
+                    await this.fetchPopular();
+                }
+            },
+
+            async fetchPopular() {
+                if (this.popularLoaded && this.popular.length > 0) {
+                    this.items = this.popular;
+                    this.showingPopular = true;
+                    this.open = true;
+                    return;
+                }
+
+                this.loading = true;
+                this.open = true;
+
+                try {
+                    const res = await fetch(`{{ route('search.popular') }}`);
+                    this.popular = await res.json();
+                    this.items = this.popular;
+                    this.showingPopular = true;
+                    this.popularLoaded = true;
+                    this.highlighted = -1;
+                } catch (e) {
+                    this.items = [];
+                } finally {
+                    this.loading = false;
+                }
+            },
+
+            async fetchSuggestions() {
+                const q = this.query.trim();
+                if (q.length < 2) {
+                    if (q.length === 0 && this.popularLoaded) {
+                        this.items = this.popular;
+                        this.showingPopular = true;
+                        this.open = true;
+                    } else {
+                        this.items = [];
+                        this.open = false;
+                    }
+                    this.searched = false;
+                    return;
+                }
+
+                this.loading = true;
+                this.open = true;
+                this.showingPopular = false;
+
+                try {
+                    const res = await fetch(`{{ route('search.suggestions') }}?q=${encodeURIComponent(q)}`);
+                    this.items = await res.json();
+                    this.searched = true;
+                    this.highlighted = -1;
+                } catch (e) {
+                    this.items = [];
+                } finally {
+                    this.loading = false;
+                }
+            },
+
+            selectSuggestion(name) {
+                this.query = name;
+                this.open = false;
+                this.goToResults();
+            },
+
+            goToResults() {
+                if (this.query.trim().length > 0) {
+                    window.location.href = `{{ route('search.results') }}?q=${encodeURIComponent(this.query.trim())}`;
+                }
+            },
+
+            handleEnter() {
+                if (this.highlighted >= 0 && this.highlighted < this.items.length) {
+                    this.selectSuggestion(this.items[this.highlighted]);
+                } else {
+                    this.goToResults();
+                }
+            },
+
+            highlightNext() {
+                if (this.highlighted < this.items.length - 1) this.highlighted++;
+            },
+
+            highlightPrev() {
+                if (this.highlighted > 0) this.highlighted--;
+                else this.highlighted = -1;
+            },
+
+            highlightMatch(name) {
+                if (!this.query.trim() || this.showingPopular) return name;
+                const escaped = this.query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                const regex = new RegExp(`(${escaped})`, 'gi');
+                return name.replace(regex, '<span class="text-red-600 font-bold">$1</span>');
+            }
+        };
+    }
+</script>
 
 </body>
 </html>

@@ -1,12 +1,14 @@
 <?php
 
 use App\Http\Controllers\CartController;
+use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\SearchController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -23,6 +25,14 @@ Route::get('/', [HomeController::class, 'index'])->name('home');
 // Katalog produk: index (browse/search/filter) dan show (detail)
 Route::get('/products', [ProductController::class, 'index'])->name('products.index');
 Route::get('/products/{product:slug}', [ProductController::class, 'show'])->name('products.show');
+
+// Kategori: tampilkan produk per kategori (slug-based URL)
+Route::get('/categories/{category:slug}', [CategoryController::class, 'show'])->name('categories.show');
+
+// Pencarian: live suggestions (JSON), popular/rekomendasi (JSON), dan halaman hasil pencarian
+Route::get('/search', [SearchController::class, 'results'])->name('search.results');
+Route::get('/search/suggestions', [SearchController::class, 'suggestions'])->name('search.suggestions');
+Route::get('/search/popular', [SearchController::class, 'popular'])->name('search.popular');
 
 Route::get('/dashboard', function () {
     return view('dashboard');
