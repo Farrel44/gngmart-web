@@ -13,7 +13,13 @@
 @endphp
 
 <div class="bg-white min-h-screen">
-<div class="max-w-screen-xl mx-auto px-6 pt-24 pb-12">
+<div class="max-w-screen-xl mx-auto px-6 pt-24 pb-12"
+     x-data="productDetail({
+         images: {{ Js::from($imageUrls) }},
+         fallback: '{{ $fallbackImage }}',
+         stock: {{ $product->stock }},
+         price: {{ $effectivePrice }}
+     })">
     <nav class="mb-6 bg-white border border-gray-200 rounded-xl px-5 py-3 text-sm text-gray-500 flex items-center gap-2 flex-wrap shadow-sm">
         <a href="{{ route('home') }}" class="hover:text-red-600 transition font-medium">Beranda</a>
 
@@ -31,13 +37,7 @@
         <span class="text-gray-800 font-semibold truncate max-w-xs">{{ $product->name }}</span>
     </nav>
 
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6"
-         x-data="productDetail({
-             images: {{ Js::from($imageUrls) }},
-             fallback: '{{ $fallbackImage }}',
-             stock: {{ $product->stock }},
-             price: {{ $effectivePrice }}
-         })">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
         <div class="lg:col-span-4">
                 {{-- Main product image with soft shadow --}}
                 <div class="bg-white rounded-xl overflow-hidden aspect-square flex items-center justify-center">
@@ -203,7 +203,26 @@
                 {{-- Main purchase card --}}
                 <div class="bg-white rounded-2xl border border-gray-200 p-5 shadow-md space-y-4">
 
-                    <h4 class="text-sm font-semibold text-gray-800">Atur jumlah</h4>
+                    {{-- Unit price --}}
+                    <div>
+                        @if($hasAnyDiscount)
+                            <div class="flex items-center gap-2">
+                                <span class="text-xl font-bold text-red-600">
+                                    Rp {{ number_format($effectivePrice, 0, ',', '.') }}
+                                </span>
+                                <span class="bg-red-100 text-red-700 text-[10px] font-bold px-2 py-0.5 rounded-full">
+                                    -{{ $discountPct }}%
+                                </span>
+                            </div>
+                            <p class="text-xs text-gray-400 line-through mt-0.5">
+                                Rp {{ number_format($product->price, 0, ',', '.') }}
+                            </p>
+                        @else
+                            <span class="text-xl font-bold text-gray-900">
+                                Rp {{ number_format($product->price, 0, ',', '.') }}
+                            </span>
+                        @endif
+                    </div>
 
                     {{-- Stock indicator --}}
                     <div class="flex items-center gap-2">
@@ -219,63 +238,40 @@
                     </div>
 
                     @if($product->stock > 0)
-                        {{-- Quantity selector (square rounded buttons) --}}
-                        <div class="flex items-center gap-2">
-                            <button @click="decreaseQty()"
-                                    :disabled="quantity <= 1"
-                                    class="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-50 transition disabled:opacity-30 disabled:cursor-not-allowed text-sm font-bold">
-                                &minus;
-                            </button>
-
-                            <input type="number"
-                                   x-model.number="quantity"
-                                   min="1"
-                                   :max="stock"
-                                   readonly
-                                   class="w-12 h-8 text-center border border-gray-300 rounded-lg font-semibold text-gray-800 text-sm bg-white focus:outline-none">
-
-                            <button @click="increaseQty()"
-                                    :disabled="quantity >= stock"
-                                    class="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-50 transition disabled:opacity-30 disabled:cursor-not-allowed text-sm font-bold">
-                                +
-                            </button>
-                        </div>
-
-                        {{-- Subtotal --}}
-                        <div class="flex items-center justify-between pt-3 border-t border-gray-100">
-                            <span class="text-xs text-gray-500">Subtotal</span>
-                            <span class="text-base font-bold text-gray-900"
-                                  x-text="'Rp ' + subtotal.toLocaleString('id-ID')">
-                            </span>
-                        </div>
-
                         {{-- Action buttons --}}
-                        <div class="space-y-2.5 pt-1">
-                            {{-- Beli Sekarang: red solid --}}
-                            <form method="POST" action="{{ route('cart.store') }}">
-                                @csrf
-                                <input type="hidden" name="product_id" value="{{ $product->id }}">
-                                <input type="hidden" name="redirect" value="checkout">
-                                <input type="hidden" name="quantity" :value="quantity">
-                                <button type="submit"
-                                        class="w-full bg-red-600 text-white font-semibold py-2.5 rounded-xl hover:bg-red-700 active:bg-red-800 transition text-sm shadow-sm">
-                                    Beli Sekarang
-                                </button>
-                            </form>
+                        <div class="space-y-2.5 pt-2 border-t border-gray-100">
+                            @auth
+                                {{-- Beli Sekarang: POST ke cart lalu redirect checkout --}}
+                                <form method="POST" action="{{ route('cart.store') }}">
+                                    @csrf
+                                    <input type="hidden" name="product_id" value="{{ $product->id }}">
+                                    <input type="hidden" name="quantity" value="1">
+                                    <input type="hidden" name="redirect" value="checkout">
+                                    <button type="submit"
+                                            class="w-full bg-red-600 text-white font-semibold py-2.5 rounded-xl hover:bg-red-700 active:bg-red-800 transition text-sm shadow-sm">
+                                        Beli Sekarang
+                                    </button>
+                                </form>
 
-                            {{-- Masukkan Keranjang: red outline --}}
-                            <form method="POST" action="{{ route('cart.store') }}">
-                                @csrf
-                                <input type="hidden" name="product_id" value="{{ $product->id }}">
-                                <input type="hidden" name="quantity" :value="quantity">
-                                <button type="submit"
+                                {{-- Masukkan Keranjang: AJAX POST, tampilkan popup --}}
+                                <button type="button"
+                                        @click="addToCart()"
                                         class="w-full border-2 border-red-600 text-red-600 font-semibold py-2.5 rounded-xl hover:bg-red-50 active:bg-red-100 transition text-sm">
                                     Masukkan Keranjang
                                 </button>
-                            </form>
+                            @else
+                                {{-- Guest: redirect ke login karena fitur ini butuh autentikasi --}}
+                                <a href="{{ route('login') }}"
+                                   class="block w-full text-center bg-red-600 text-white font-semibold py-2.5 rounded-xl hover:bg-red-700 active:bg-red-800 transition text-sm shadow-sm">
+                                    Beli Sekarang
+                                </a>
+                                <a href="{{ route('login') }}"
+                                   class="block w-full text-center border-2 border-red-600 text-red-600 font-semibold py-2.5 rounded-xl hover:bg-red-50 active:bg-red-100 transition text-sm">
+                                    Masukkan Keranjang
+                                </a>
+                            @endauth
                         </div>
                     @else
-                        {{-- Out of stock state --}}
                         <button disabled
                                 class="w-full bg-gray-300 text-gray-500 font-semibold py-2.5 rounded-xl cursor-not-allowed text-sm">
                             Stok Habis
@@ -329,6 +325,49 @@
             </p>
         </div>
     @endif
+
+    {{-- POPUP: Berhasil menambahkan ke keranjang --}}
+    <div x-show="showCartPopup"
+         x-transition:enter="transition ease-out duration-200"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-150"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
+         @click.self="closePopup()"
+         @keydown.escape.window="closePopup()"
+         class="fixed inset-0 z-[100] flex items-center justify-center bg-black/40"
+         style="display: none;">
+
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-md mx-4 p-6 relative"
+             @click.stop>
+            {{-- Close button --}}
+            <button @click="closePopup()"
+                    class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+
+            {{-- Header --}}
+            <h3 class="text-lg font-bold text-gray-900 mb-4 pr-8">
+                Berhasil menambahkan ke keranjang!
+            </h3>
+
+            {{-- Product row --}}
+            <div class="flex items-center gap-4 py-3 border-t border-gray-100">
+                <img :src="addedProduct?.image_url || '{{ asset('images/logo.png') }}'"
+                     :alt="addedProduct?.name"
+                     class="w-12 h-12 rounded-lg object-contain bg-gray-50 flex-shrink-0">
+                <p class="text-sm font-medium text-gray-800 flex-1 line-clamp-2"
+                   x-text="addedProduct?.name"></p>
+                <a href="{{ route('cart.index') }}"
+                   class="bg-red-600 text-white text-sm font-semibold px-4 py-2 rounded-xl hover:bg-red-700 transition flex-shrink-0">
+                    Lihat Keranjang
+                </a>
+            </div>
+        </div>
+    </div>
 
     @if($relatedProducts->count() > 0)
         <div class="mt-12">
@@ -421,8 +460,11 @@
             stock: config.stock,
             unitPrice: config.price,
             activeIndex: 0,
-            quantity: 1,
             showFullDesc: false,
+
+            // Popup state
+            showCartPopup: false,
+            addedProduct: null,
 
             get currentImage() {
                 return this.images.length > 0
@@ -430,24 +472,54 @@
                     : this.fallback;
             },
 
-            get subtotal() {
-                return this.quantity * this.unitPrice;
-            },
-
             selectImage(index) {
                 this.activeIndex = index;
             },
 
-            increaseQty() {
-                if (this.quantity < this.stock) {
-                    this.quantity++;
+            async addToCart() {
+                try {
+                    const res = await fetch('{{ route("cart.add") }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                            'Accept': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            product_id: {{ $product->id }},
+                            quantity: 1,
+                        }),
+                    });
+
+                    // 401/419 = sesi expired, arahkan ke login
+                    if (res.status === 401 || res.status === 419) {
+                        window.location.href = '{{ route("login") }}';
+                        return;
+                    }
+
+                    const data = await res.json();
+
+                    if (data.success) {
+                        this.addedProduct = data.product;
+                        this.showCartPopup = true;
+
+                        // Update badge jumlah item di navbar
+                        const badge = document.getElementById('cart-count-badge');
+                        if (badge) {
+                            badge.textContent = data.cart_count;
+                            badge.classList.remove('hidden');
+                        }
+                    } else if (data.message) {
+                        alert(data.message);
+                    }
+                } catch (e) {
+                    console.error('Add to cart failed:', e);
                 }
             },
 
-            decreaseQty() {
-                if (this.quantity > 1) {
-                    this.quantity--;
-                }
+            closePopup() {
+                this.showCartPopup = false;
+                this.addedProduct = null;
             }
         }));
     });

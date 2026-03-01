@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Cart;
 use App\Models\CartItem;
 use App\Models\Product;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -19,8 +20,8 @@ class CartController extends Controller
     {
         $cart = $this->getOrCreateCart();
 
-        // Eager load products untuk menghindari N+1 query
-        $cart->load('items.product');
+        // Eager load products + images untuk menghindari N+1 query
+        $cart->load('items.product.images');
 
         return view('cart.index', compact('cart'));
     }
@@ -76,6 +77,66 @@ class CartController extends Controller
 
         return redirect()->route('cart.index')
             ->with('success', 'Produk berhasil ditambahkan ke keranjang.');
+    }
+
+    /**
+     * AJAX: tambah produk ke cart, return JSON untuk popup konfirmasi.
+     * Dipakai oleh tombol "Masukkan Keranjang" di halaman detail produk.
+     */
+    public function add(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'product_id' => ['required', 'exists:products,id'],
+            'quantity' => ['required', 'integer', 'min:1'],
+        ]);
+
+        $product = Product::with('images')->findOrFail($validated['product_id']);
+
+        if ($product->stock < $validated['quantity']) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Stok tidak mencukupi. Tersedia: ' . $product->stock,
+            ], 422);
+        }
+
+        $cart = $this->getOrCreateCart();
+
+        $existingItem = $cart->items()->where('product_id', $product->id)->first();
+
+        if ($existingItem) {
+            $newQuantity = $existingItem->quantity + $validated['quantity'];
+
+            if ($newQuantity > $product->stock) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Total quantity melebihi stok. Tersedia: ' . $product->stock . ', di cart: ' . $existingItem->quantity,
+                ], 422);
+            }
+
+            $existingItem->update(['quantity' => $newQuantity]);
+        } else {
+            $cart->items()->create([
+                'product_id' => $product->id,
+                'quantity' => $validated['quantity'],
+            ]);
+        }
+
+        // Reload untuk menghitung total items terbaru
+        $cart->load('items');
+
+        // Ambil URL gambar pertama, atau fallback ke placeholder
+        $imageUrl = $product->images->first()
+            ? asset($product->images->first()->image_url)
+            : asset('images/placeholder.png');
+
+        return response()->json([
+            'success' => true,
+            'product' => [
+                'name' => $product->name,
+                'image_url' => $imageUrl,
+            ],
+            'cart_count' => $cart->getTotalItems(),
+        ]);
     }
 
     /**

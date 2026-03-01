@@ -123,10 +123,9 @@
                 </div>
 
                 {{-- Buy button --}}
-                <button class="w-full bg-red-500 text-white py-2 rounded-xl text-sm font-semibold hover:bg-red-600 transition mt-3"
-                        onclick="event.preventDefault();">
+                <span class="w-full bg-red-500 text-white py-2 rounded-xl text-sm font-semibold hover:bg-red-600 transition mt-3 block text-center">
                     Beli
-                </button>
+                </span>
             </a>
         @empty
             <div class="col-span-full text-center py-16 text-gray-500">

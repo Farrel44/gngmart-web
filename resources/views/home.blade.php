@@ -191,9 +191,9 @@
             @endif
         </div>
 
-        <button class="w-full bg-red-600 text-white py-2 rounded-full text-sm hover:bg-red-700 transition mt-auto" onclick="event.preventDefault();">
+        <span class="w-full bg-red-600 text-white py-2 rounded-full text-sm hover:bg-red-700 transition mt-auto block text-center">
             Beli
-        </button>
+        </span>
 
     </a>
     @empty

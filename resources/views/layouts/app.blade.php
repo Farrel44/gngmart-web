@@ -125,16 +125,44 @@
             <!-- Right Menu -->
             <div class="flex items-center gap-6">
 
-                {{-- Keranjang: icon di atas, teks di bawah (hanya untuk user login) --}}
+                {{-- Keranjang: icon di atas, teks di bawah --}}
                 @auth
-                    <a href="{{ route('cart.index') }}" class="flex flex-col items-center hover:text-red-600 transition">
+                    <a href="{{ route('cart.index') }}" class="flex flex-col items-center hover:text-red-600 transition relative">
+                        <div class="relative">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                      d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z"/>
+                            </svg>
+                            @php
+                                $cartCount = Auth::user()->cart?->getTotalItems() ?? 0;
+                            @endphp
+                            @if($cartCount > 0)
+                                <span id="cart-count-badge"
+                                      class="absolute -top-2 -right-2 bg-red-600 text-white text-[10px] font-bold min-w-[18px] h-[18px] flex items-center justify-center rounded-full">
+                                    {{ $cartCount > 99 ? '99+' : $cartCount }}
+                                </span>
+                            @else
+                                <span id="cart-count-badge"
+                                      class="absolute -top-2 -right-2 bg-red-600 text-white text-[10px] font-bold min-w-[18px] h-[18px] flex items-center justify-center rounded-full hidden">
+                                    0
+                                </span>
+                            @endif
+                        </div>
+                        <span class="text-xs font-medium mt-0.5">Keranjang</span>
+                    </a>
+                @endauth
+
+                {{-- Guest: keranjang redirect ke login karena butuh autentikasi --}}
+                @guest
+                    <a href="{{ route('login') }}"
+                       class="flex flex-col items-center hover:text-red-600 transition">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                   d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z"/>
                         </svg>
                         <span class="text-xs font-medium mt-0.5">Keranjang</span>
                     </a>
-                @endauth
+                @endguest
 
                 <!-- Guest: tombol Masuk & Daftar (disembunyikan di halaman auth) -->
                 @guest

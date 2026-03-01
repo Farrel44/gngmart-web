@@ -128,7 +128,7 @@ class CheckoutController extends Controller
         $user = Auth::user();
 
         return Cart::where('user_id', $user->id)
-            ->with('items.product')
+            ->with('items.product.images')
             ->first();
     }
 
