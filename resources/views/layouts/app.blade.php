@@ -182,11 +182,16 @@
                 @auth
                     <div class="relative" x-data="{ open: false }" @mouseenter="open = true" @mouseleave="open = false">
                         <button @click="open = !open"
-                                class="flex flex-col items-center hover:text-red-600 transition focus:outline-none">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-                            </svg>
+                                class="flex flex-col items-center hover:opacity-80 transition focus:outline-none">
+                            @if(auth()->user()->profile_photo)
+                                <img src="{{ Storage::url(auth()->user()->profile_photo) }}" 
+                                     alt="{{ auth()->user()->name }}"
+                                     class="w-8 h-8 rounded-full object-cover border-2 border-red-600">
+                            @else
+                                <div class="w-8 h-8 rounded-full bg-gradient-to-br from-red-400 to-red-600 flex items-center justify-center text-white font-bold text-sm border-2 border-red-600">
+                                    {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
+                                </div>
+                            @endif
                             <span class="text-xs font-medium mt-0.5 max-w-[80px] truncate">{{ auth()->user()->name ? explode(' ', auth()->user()->name)[0] : '' }}</span>
                         </button>
 
@@ -210,7 +215,7 @@
                                 Dashboard
                             </a>
 
-                            <a href="{{ route('profile.edit') }}"
+                            <a href="{{ route('profile.show') }}"
                                class="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition">
                                 <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
