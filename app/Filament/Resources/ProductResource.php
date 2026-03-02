@@ -138,9 +138,7 @@ class ProductResource extends Resource
                 Tables\Columns\TextColumn::make('price')
                     ->label('Harga')
                     ->money('IDR')
-                    ->sortable()
-                    // Coret harga jika ada diskon
-                    ->strikethrough(fn ($record) => $record->hasDiscount()),
+                    ->sortable(),
 
                 Tables\Columns\TextColumn::make('discount_price')
                     ->label('Harga Diskon')
