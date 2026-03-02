@@ -27,6 +27,11 @@
     <form action="{{ route('checkout.store') }}" method="POST" id="checkout-form">
         @csrf
 
+        {{-- Hidden inputs: kirim ID item yang dipilih ke store() --}}
+        @foreach($items as $item)
+            <input type="hidden" name="selected_items[]" value="{{ $item->id }}">
+        @endforeach
+
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {{-- LEFT: Detail Penerima + Pengiriman + Item List --}}
             <div class="lg:col-span-2 space-y-6">
@@ -91,11 +96,11 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                   d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
                         </svg>
-                        Daftar Produk ({{ $cart->getTotalItems() }} item)
+                        Daftar Produk ({{ $items->sum('quantity') }} item)
                     </h2>
 
                     <div class="divide-y divide-gray-100">
-                        @foreach($cart->items as $item)
+                        @foreach($items as $item)
                             @php
                                 $imageUrl = $item->product->images->first()
                                     ? asset($item->product->images->first()->image_url)
@@ -144,9 +149,9 @@
 
                     <div class="space-y-3 text-sm">
                         <div class="flex justify-between text-gray-600">
-                            <span>Subtotal ({{ $cart->getTotalItems() }} item)</span>
+                            <span>Subtotal ({{ $items->sum('quantity') }} item)</span>
                             <span class="font-medium text-gray-900">
-                                Rp {{ number_format($cart->getTotalPrice(), 0, ',', '.') }}
+                                Rp {{ number_format($items->sum(fn($i) => $i->getSubtotal()), 0, ',', '.') }}
                             </span>
                         </div>
                         <div class="flex justify-between text-gray-600">
@@ -160,7 +165,7 @@
                     <div class="flex justify-between items-center mb-6">
                         <span class="text-base font-bold text-gray-900">Total</span>
                         <span class="text-lg font-bold text-red-600">
-                            Rp {{ number_format($cart->getTotalPrice(), 0, ',', '.') }}
+                            Rp {{ number_format($items->sum(fn($i) => $i->getSubtotal()), 0, ',', '.') }}
                         </span>
                     </div>
 

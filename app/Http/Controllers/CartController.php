@@ -165,13 +165,71 @@ class CartController extends Controller
     }
 
     /**
-     * Hapus satu item dari cart.
+     * AJAX: update quantity satu item.
+     * Dipakai oleh tombol +/- di halaman cart (debounced).
      */
-    public function destroy(CartItem $item): RedirectResponse
+    public function updateQuantity(Request $request, CartItem $item): JsonResponse
+    {
+        $this->authorizeCartItem($item);
+
+        $validated = $request->validate([
+            'quantity' => ['required', 'integer', 'min:1'],
+        ]);
+
+        // Clamp ke stok maksimal tanpa error — biarkan client tahu batas sebenarnya
+        if ($validated['quantity'] > $item->product->stock) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Stok tidak mencukupi.',
+                'max_quantity' => $item->product->stock,
+            ], 422);
+        }
+
+        $item->update(['quantity' => $validated['quantity']]);
+
+        return response()->json([
+            'success' => true,
+            'quantity' => $item->quantity,
+        ]);
+    }
+
+    /**
+     * AJAX: hapus beberapa item sekaligus (bulk delete).
+     * Hanya menghapus item yang memang milik cart user ini.
+     */
+    public function bulkDelete(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'ids' => ['required', 'array', 'min:1'],
+            'ids.*' => ['integer'],
+        ]);
+
+        $cart = $this->getOrCreateCart();
+
+        // Hanya hapus item yang ada di cart user ini — abaikan id asing
+        $deleted = $cart->items()
+            ->whereIn('id', $validated['ids'])
+            ->delete();
+
+        return response()->json([
+            'success' => true,
+            'deleted_count' => $deleted,
+        ]);
+    }
+
+    /**
+     * Hapus satu item dari cart.
+     * Return JSON jika request dari AJAX, redirect jika dari form biasa.
+     */
+    public function destroy(Request $request, CartItem $item): RedirectResponse|JsonResponse
     {
         $this->authorizeCartItem($item);
 
         $item->delete();
+
+        if ($request->expectsJson()) {
+            return response()->json(['success' => true]);
+        }
 
         return redirect()->route('cart.index')
             ->with('success', 'Item berhasil dihapus dari keranjang.');
