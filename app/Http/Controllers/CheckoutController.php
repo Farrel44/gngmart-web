@@ -15,16 +15,34 @@ class CheckoutController extends Controller
 {
     /**
      * Tampilkan halaman checkout dengan ringkasan cart dan form alamat.
-     * Autofill alamat dari profil user untuk kemudahan.
+     * Hanya item yang di-check di cart page yang masuk ke checkout.
+     * Query param ?items=1,2,3 menentukan cart item IDs yang dipilih.
      */
-    public function index(): View|RedirectResponse
+    public function index(Request $request): View|RedirectResponse
     {
         $cart = $this->getUserCartWithItems();
 
-        // Guard: jangan bisa checkout kalau cart kosong
         if (!$cart || $cart->items->isEmpty()) {
             return redirect()->route('cart.index')
                 ->with('error', 'Keranjang kosong. Silakan tambahkan produk terlebih dahulu.');
+        }
+
+        // Filter hanya item yang dipilih user di halaman cart.
+        // Tanpa ?items param → tampilkan semua (backward compat untuk "Beli Sekarang" flow).
+        $items = $cart->items;
+        $selectedIds = [];
+
+        if ($request->has('items')) {
+            $selectedIds = array_filter(
+                array_map('intval', explode(',', $request->query('items', '')))
+            );
+
+            $items = $cart->items->whereIn('id', $selectedIds)->values();
+        }
+
+        if ($items->isEmpty()) {
+            return redirect()->route('cart.index')
+                ->with('error', 'Tidak ada item yang dipilih. Silakan pilih item untuk checkout.');
         }
 
         /** @var \App\Models\User $user */
@@ -32,6 +50,7 @@ class CheckoutController extends Controller
 
         return view('checkout.index', [
             'cart' => $cart,
+            'items' => $items,
             'user' => $user,
         ]);
     }
@@ -50,30 +69,40 @@ class CheckoutController extends Controller
     {
         $validated = $request->validate([
             'address_shipment' => ['required', 'string', 'min:10', 'max:500'],
+            'selected_items' => ['required', 'array', 'min:1'],
+            'selected_items.*' => ['integer'],
         ], [
             'address_shipment.required' => 'Alamat pengiriman wajib diisi.',
             'address_shipment.min' => 'Alamat pengiriman minimal 10 karakter.',
             'address_shipment.max' => 'Alamat pengiriman maksimal 500 karakter.',
+            'selected_items.required' => 'Tidak ada item yang dipilih.',
         ]);
 
         $cart = $this->getUserCartWithItems();
 
-        // Guard: pastikan cart ada dan tidak kosong
         if (!$cart || $cart->items->isEmpty()) {
             return redirect()->route('cart.index')
                 ->with('error', 'Keranjang kosong. Tidak bisa checkout.');
+        }
+
+        // Hanya proses item yang memang dipilih user — item lain tetap di cart
+        $selectedItems = $cart->items->whereIn('id', $validated['selected_items'])->values();
+
+        if ($selectedItems->isEmpty()) {
+            return redirect()->route('cart.index')
+                ->with('error', 'Item yang dipilih tidak ditemukan di keranjang.');
         }
 
         /** @var \App\Models\User $user */
         $user = Auth::user();
 
         try {
-            $order = DB::transaction(function () use ($cart, $user, $validated) {
-                // 1. Validasi stok semua item sebelum proses
-                $this->validateStock($cart);
+            $order = DB::transaction(function () use ($cart, $selectedItems, $user, $validated) {
+                // 1. Validasi stok hanya untuk item yang dipilih
+                $this->validateStock($selectedItems);
 
-                // 2. Hitung total harga (pakai effective price)
-                $totalPrice = $cart->getTotalPrice();
+                // 2. Hitung total harga dari selected items saja
+                $totalPrice = $selectedItems->sum(fn($item) => $item->getSubtotal());
 
                 // 3. Buat order baru
                 $order = Order::create([
@@ -84,34 +113,29 @@ class CheckoutController extends Controller
                     'address_shipment' => $validated['address_shipment'],
                 ]);
 
-                // 4. Buat order items dan kurangi stok (dalam satu loop untuk efisiensi)
-                foreach ($cart->items as $cartItem) {
-                    // Snapshot harga saat ini ke order item
+                // 4. Buat order items dan kurangi stok
+                foreach ($selectedItems as $cartItem) {
                     $order->items()->create([
                         'product_id' => $cartItem->product_id,
                         'quantity' => $cartItem->quantity,
                         'price' => $cartItem->product->getEffectivePrice(),
                     ]);
 
-                    // Kurangi stok produk
                     $cartItem->product->decrement('stock', $cartItem->quantity);
                 }
 
-                // 5. Kosongkan cart setelah order berhasil
-                $cart->clear();
+                // 5. Hapus hanya item yang diproses — sisanya tetap di cart
+                $cart->items()->whereIn('id', $selectedItems->pluck('id'))->delete();
 
                 return $order;
             });
 
-            // Redirect ke halaman pilih metode pembayaran
             return redirect()->route('payment.create', $order)
                 ->with('success', 'Pesanan berhasil dibuat! Silakan pilih metode pembayaran.');
 
         } catch (\Illuminate\Validation\ValidationException $e) {
-            // Re-throw validation exception (stok tidak cukup)
             throw $e;
         } catch (\Exception $e) {
-            // Log error untuk debugging, tampilkan pesan umum ke user
             report($e);
 
             return redirect()->route('checkout.index')
@@ -133,18 +157,15 @@ class CheckoutController extends Controller
     }
 
     /**
-     * Validasi stok semua item di cart.
-     * Throw ValidationException jika ada item dengan stok tidak cukup.
-     * 
-     * Menggunakan fresh query untuk menghindari race condition:
-     * stok bisa berubah antara halaman checkout dan submit.
+     * Validasi stok item yang akan di-checkout.
+     * Menerima Collection of CartItem (bukan Cart).
+     * Fresh query per-item untuk menghindari race condition.
      */
-    private function validateStock(Cart $cart): void
+    private function validateStock($items): void
     {
         $insufficientItems = [];
 
-        foreach ($cart->items as $item) {
-            // Fresh query untuk dapat stok terbaru (hindari race condition)
+        foreach ($items as $item) {
             $currentStock = Product::where('id', $item->product_id)->value('stock');
 
             if ($currentStock < $item->quantity) {

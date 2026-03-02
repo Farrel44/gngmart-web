@@ -139,8 +139,10 @@ class ProductResource extends Resource
                     ->label('Harga')
                     ->money('IDR')
                     ->sortable()
-                    // Coret harga jika ada diskon
-                    ->strikethrough(fn ($record) => $record->hasDiscount()),
+                    // Coret harga jika ada diskon aktif
+                    ->extraAttributes(fn ($record) => $record->hasDiscount()
+                        ? ['class' => 'line-through text-gray-400']
+                        : []),
 
                 Tables\Columns\TextColumn::make('discount_price')
                     ->label('Harga Diskon')
