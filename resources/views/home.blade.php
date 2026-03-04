@@ -119,8 +119,8 @@
     <h2 class="text-2xl font-bold text-gray-800">
         Rekomendasi Mingguan
     </h2>
-    <a href="#" class="text-blue-600 text-sm font-semibold hover:underline">
-        Lihat Semua
+    <a href="{{ route('products.index') }}" class="text-red-600 text-sm font-semibold hover:underline">
+        Lihat Semua →
     </a>
 </div>
 
@@ -206,25 +206,25 @@
 
 @if($promoSlide)
 <div class="max-w-screen-xl mx-auto px-6 mt-16">
-    <div class="relative bg-gradient-to-r from-green-300 via-green-400 to-green-500
-                rounded-3xl p-12 flex flex-col md:flex-row items-center overflow-hidden">
+    <div class="relative rounded-3xl p-12 flex flex-col md:flex-row items-center overflow-hidden"
+         style="background: {{ $promoSlide->getGradientStyle() }};">
 
         {{-- Text --}}
         <div class="flex-1 pr-8 z-10">
             @if($promoSlide->subtitle)
-                <p class="text-sm font-semibold text-green-800 uppercase mb-2">
+                <p class="text-sm font-semibold uppercase mb-2 text-gray-800">
                     {{ $promoSlide->subtitle }}
                 </p>
             @endif
 
             @if($promoSlide->title)
-                <h2 class="text-3xl font-bold text-gray-800 mb-4">
+                <h2 class="text-3xl font-bold mb-4 text-gray-800 text-white">
                     {{ $promoSlide->title }}
                 </h2>
             @endif
 
             @if($promoSlide->description)
-                <p class="text-gray-700 mb-6">
+                <p class="mb-6 text-gray-700 text-white/90">
                     {{ $promoSlide->description }}
                 </p>
             @endif

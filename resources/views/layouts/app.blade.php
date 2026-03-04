@@ -282,12 +282,9 @@
             <div>
                 <h4 class="text-sm font-semibold text-gray-800 mb-3">Kategori</h4>
                 <ul class="space-y-2">
-                    <li><a href="{{ route('products.index') }}?category=makanan" class="text-sm text-gray-500 hover:text-red-600 transition">Makanan dan Minuman</a></li>
-                    <li><a href="{{ route('products.index') }}?category=kebutuhan-rumah-tangga" class="text-sm text-gray-500 hover:text-red-600 transition">Kebutuhan Rumah Tangga</a></li>
-                    <li><a href="{{ route('products.index') }}?category=aksesoris" class="text-sm text-gray-500 hover:text-red-600 transition">Aksesoris</a></li>
-                    <li><a href="{{ route('products.index') }}?category=alat-tulis" class="text-sm text-gray-500 hover:text-red-600 transition">Alat Tulis</a></li>
-                    <li><a href="{{ route('products.index') }}?category=kesehatan" class="text-sm text-gray-500 hover:text-red-600 transition">Kesehatan</a></li>
-                    <li><a href="{{ route('products.index') }}?category=kecantikan" class="text-sm text-gray-500 hover:text-red-600 transition">Kecantikan</a></li>
+                    @foreach($footerCategories as $cat)
+                        <li><a href="{{ route('categories.show', $cat) }}" class="text-sm text-gray-500 hover:text-red-600 transition">{{ $cat->name }}</a></li>
+                    @endforeach
                 </ul>
             </div>
 

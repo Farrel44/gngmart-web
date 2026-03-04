@@ -5,12 +5,13 @@ namespace App\Http\Controllers;
 use App\Models\CarouselSlide;
 use App\Models\Category;
 use App\Models\Product;
+use App\Models\PromoBanner;
 use Illuminate\View\View;
 
 /**
  * Controller untuk halaman publik utama (landing page)
  *
- * Menampilkan overview toko: carousel, kategori, produk unggulan.
+ * Menampilkan overview toko: carousel, kategori, produk unggulan, dan promo banner.
  * Tidak memerlukan autentikasi.
  */
 class HomeController extends Controller
@@ -25,7 +26,7 @@ class HomeController extends Controller
     {
         $slides = CarouselSlide::active()->get();
 
-        $promoSlide = $slides->first();
+        $promoSlide = PromoBanner::active()->first();
 
         $categories = Category::withCount('products')
             ->having('products_count', '>', 0)
