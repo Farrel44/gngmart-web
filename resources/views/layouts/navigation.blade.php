@@ -28,18 +28,18 @@
             <form method="POST" action="{{ route('logout') }}">
                 @csrf
                 <button class="bg-red-500 hover:bg-red-600 px-4 py-2 rounded text-white">
-                    Logout
+                    Keluar
                 </button>
             </form>
         @else
             <a href="{{ route('login') }}"
                class="bg-green-500 hover:bg-green-600 px-4 py-2 rounded text-white">
-                Login
+                Masuk
             </a>
 
             <a href="{{ route('register') }}"
                class="bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded text-white">
-                Register
+                Daftar
             </a>
         @endauth    
     </div>

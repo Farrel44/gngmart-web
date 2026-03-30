@@ -14,6 +14,10 @@ class RecentOrdersWidget extends BaseWidget
 
     protected static ?int $sort = 2;
 
+    protected static bool $isLazy = true;
+
+    protected int|string|array $columnSpan = 'full';
+
     public function table(Table $table): Table
     {
         return $table
@@ -21,6 +25,7 @@ class RecentOrdersWidget extends BaseWidget
             ->columns([
                 TextColumn::make('id')
                     ->label('ID Pesanan')
+                    ->prefix('#')
                     ->searchable()
                     ->sortable(),
 
@@ -38,13 +43,16 @@ class RecentOrdersWidget extends BaseWidget
                     ->label('Status')
                     ->colors([
                         'warning' => 'pending',
-                        'info' => 'processing',
+                        'info' => fn ($state) => in_array($state, ['paid', 'processing']),
                         'success' => 'completed',
                         'danger' => 'cancelled',
+                        'primary' => 'shipped',
                     ])
                     ->formatStateUsing(fn (string $state): string => match ($state) {
                         'pending' => 'Tertunda',
+                        'paid' => 'Dibayar',
                         'processing' => 'Diproses',
+                        'shipped' => 'Dikirim',
                         'completed' => 'Selesai',
                         'cancelled' => 'Dibatalkan',
                         default => $state,
@@ -56,6 +64,9 @@ class RecentOrdersWidget extends BaseWidget
                     ->sortable(),
             ])
             ->defaultSort('created_at', 'desc')
-            ->paginated(false);
+            ->paginated(false)
+            ->emptyStateHeading('Belum ada pesanan')
+            ->emptyStateDescription('Pesanan dari pelanggan akan muncul di sini.')
+            ->emptyStateIcon('heroicon-o-shopping-bag');
     }
 }

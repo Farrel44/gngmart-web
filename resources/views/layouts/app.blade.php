@@ -334,7 +334,7 @@
         {{-- Copyright --}}
         <div class="mt-8 pt-6 border-t border-gray-200">
             <p class="text-sm text-gray-400 text-center">
-                &copy; {{ date('Y') }} GnG Mart. All rights reserved.
+                &copy; {{ date('Y') }} GnG Mart. Hak cipta dilindungi.
             </p>
         </div>
     </div>

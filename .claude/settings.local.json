@@ -2,7 +2,16 @@
   "permissions": {
     "allow": [
       "Bash(git -C \"d:/File_Sekolah/PSAJ/gngmart-web\" log --oneline)",
-      "Bash(grep -r \"with\\\\|load\\\\|eager\" /d/File_Sekolah/PSAJ/gngmart-web/app/Filament/Resources/*.php)"
+      "Bash(grep -r \"with\\\\|load\\\\|eager\" /d/File_Sekolah/PSAJ/gngmart-web/app/Filament/Resources/*.php)",
+      "Bash(grep -E \"\\\\.\\(php|blade\\)$\")",
+      "Bash(php -l app/Filament/Widgets/OrderChartWidget.php)",
+      "Bash(php -l app/Filament/Widgets/OrderStatusChartWidget.php)",
+      "Bash(php -l app/Filament/Widgets/QuickActionsWidget.php)",
+      "Bash(php -l app/Filament/Widgets/RecentActivityWidget.php)",
+      "Bash(php -l app/Filament/Widgets/StoreStatsWidget.php)",
+      "Bash(php artisan:*)",
+      "Bash(./vendor/bin/pint app/Filament/Widgets/ app/Filament/Pages/Dashboard.php app/Providers/Filament/AdminPanelProvider.php)",
+      "Bash(./vendor/bin/pint app/Filament/Widgets/OrderChartWidget.php app/Filament/Widgets/StoreStatsWidget.php)"
     ]
   }
 }

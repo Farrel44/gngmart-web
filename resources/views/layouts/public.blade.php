@@ -200,7 +200,7 @@
                 </div>
                 <div class="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
                     <p class="text-sm text-gray-500 dark:text-gray-400 text-center">
-                        &copy; {{ date('Y') }} GNGMart. All rights reserved.
+                        &copy; {{ date('Y') }} GNGMart. Hak cipta dilindungi.
                     </p>
                 </div>
             </div>
