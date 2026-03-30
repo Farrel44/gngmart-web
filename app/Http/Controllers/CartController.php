@@ -42,7 +42,7 @@ class CartController extends Controller
         // Validasi stok tersedia
         if ($product->stock < $validated['quantity']) {
             return back()->withErrors([
-                'quantity' => 'Stok tidak mencukupi. Tersedia: ' . $product->stock,
+                'quantity' => 'Stok tidak mencukupi. Tersedia: '.$product->stock,
             ]);
         }
 
@@ -57,7 +57,7 @@ class CartController extends Controller
             // Validasi total quantity tidak melebihi stok
             if ($newQuantity > $product->stock) {
                 return back()->withErrors([
-                    'quantity' => 'Total quantity melebihi stok. Tersedia: ' . $product->stock . ', di cart: ' . $existingItem->quantity,
+                    'quantity' => 'Total quantity melebihi stok. Tersedia: '.$product->stock.', di cart: '.$existingItem->quantity,
                 ]);
             }
 
@@ -95,7 +95,7 @@ class CartController extends Controller
         if ($product->stock < $validated['quantity']) {
             return response()->json([
                 'success' => false,
-                'message' => 'Stok tidak mencukupi. Tersedia: ' . $product->stock,
+                'message' => 'Stok tidak mencukupi. Tersedia: '.$product->stock,
             ], 422);
         }
 
@@ -109,7 +109,7 @@ class CartController extends Controller
             if ($newQuantity > $product->stock) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Total quantity melebihi stok. Tersedia: ' . $product->stock . ', di cart: ' . $existingItem->quantity,
+                    'message' => 'Total quantity melebihi stok. Tersedia: '.$product->stock.', di cart: '.$existingItem->quantity,
                 ], 422);
             }
 
@@ -154,7 +154,7 @@ class CartController extends Controller
         // Validasi stok tersedia
         if ($item->product->stock < $validated['quantity']) {
             return back()->withErrors([
-                'quantity' => 'Stok tidak mencukupi. Tersedia: ' . $item->product->stock,
+                'quantity' => 'Stok tidak mencukupi. Tersedia: '.$item->product->stock,
             ]);
         }
 
@@ -273,7 +273,7 @@ class CartController extends Controller
         $user = Auth::user();
 
         // Item harus punya cart, dan cart harus milik user ini
-        if (!$item->cart || $item->cart->user_id !== $user->id) {
+        if (! $item->cart || $item->cart->user_id !== $user->id) {
             abort(403, 'Unauthorized action.');
         }
     }

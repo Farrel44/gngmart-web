@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Order;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 /**
@@ -78,16 +79,17 @@ class OrderController extends Controller
                 ->with('error', 'Pesanan tidak dapat dibatalkan karena sudah diproses.');
         }
 
-        // Transisi status ke cancelled
-        $order->transitionTo(Order::STATUS_CANCELLED);
+        // Transisi status dan kembalikan stok dalam satu transaction
+        // agar data tetap konsisten jika salah satu operasi gagal
+        DB::transaction(function () use ($order) {
+            $order->transitionTo(Order::STATUS_CANCELLED);
 
-        // Kembalikan stok produk
-        // Penting: ini harus dilakukan agar stok kembali tersedia untuk dijual
-        foreach ($order->items as $item) {
-            if ($item->product) {
-                $item->product->increment('stock', $item->quantity);
+            foreach ($order->items as $item) {
+                if ($item->product) {
+                    $item->product->increment('stock', $item->quantity);
+                }
             }
-        }
+        });
 
         return redirect()
             ->route('orders.index')

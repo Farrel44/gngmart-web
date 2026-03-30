@@ -6,6 +6,7 @@ use App\Models\Order;
 use App\Models\Payment;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 /**
@@ -82,7 +83,7 @@ class PaymentController extends Controller
 
         // Validasi input
         $validated = $request->validate([
-            'payment_method' => ['required', 'in:' . implode(',', Payment::getMethods())],
+            'payment_method' => ['required', 'in:'.implode(',', Payment::getMethods())],
             'payment_proof' => [
                 // Conditional required: wajib jika bukan COD
                 $request->payment_method !== Payment::METHOD_COD ? 'required' : 'nullable',
@@ -99,27 +100,39 @@ class PaymentController extends Controller
             'payment_proof.max' => 'Ukuran file maksimal 2MB.',
         ]);
 
-        // Handle upload bukti bayar
+        // Handle upload bukti bayar (di luar transaction agar file tidak orphan jika rollback)
         $proofPath = null;
         if ($request->hasFile('payment_proof')) {
-            // Simpan ke storage/app/public/payment_proofs
-            // Filename: {order_id}_{timestamp}.{extension}
             $proofPath = $request->file('payment_proof')->store('payment_proofs', 'public');
         }
 
-        // Buat record payment
-        $payment = Payment::create([
-            'order_id' => $order->id,
-            'payment_method' => $validated['payment_method'],
-            'payment_status' => Payment::STATUS_PENDING,
-            'payment_proof' => $proofPath,
-            'payment_date' => now(),
-        ]);
+        // Buat record payment dalam transaction dengan lock untuk mencegah duplikasi
+        $message = DB::transaction(function () use ($order, $validated, $proofPath) {
+            // Re-check dengan lock agar concurrent request tidak bisa lolos bersamaan
+            $lockedOrder = Order::lockForUpdate()->find($order->id);
 
-        // Redirect ke halaman detail order dengan pesan sukses
-        $message = $validated['payment_method'] === Payment::METHOD_COD
-            ? 'Pesanan berhasil dibuat dengan metode COD. Siapkan uang tunai saat pesanan diantar.'
-            : 'Bukti pembayaran berhasil diunggah. Tunggu verifikasi dari admin.';
+            if ($lockedOrder->payment()->exists()) {
+                return null; // Payment sudah ada, skip
+            }
+
+            Payment::create([
+                'order_id' => $lockedOrder->id,
+                'payment_method' => $validated['payment_method'],
+                'payment_status' => Payment::STATUS_PENDING,
+                'payment_proof' => $proofPath,
+                'payment_date' => now(),
+            ]);
+
+            return $validated['payment_method'] === Payment::METHOD_COD
+                ? 'Pesanan berhasil dibuat dengan metode COD. Siapkan uang tunai saat pesanan diantar.'
+                : 'Bukti pembayaran berhasil diunggah. Tunggu verifikasi dari admin.';
+        });
+
+        if ($message === null) {
+            return redirect()
+                ->route('orders.show', $order)
+                ->with('error', 'Pembayaran sudah tercatat.');
+        }
 
         return redirect()
             ->route('orders.show', $order)

@@ -66,7 +66,7 @@ class SearchController extends Controller
         if (strlen($query) >= 1) {
             $products = Product::search($query)
                 ->query(fn ($q) => $q
-                    ->with(['category', 'images'])
+                    ->with(['category', 'images', 'promotions', 'category.promotions'])
                     ->where('stock', '>', 0)
                     ->orWhereHas('category', fn ($cat) => $cat->where('name', 'LIKE', "%{$query}%"))
                 )

@@ -9,7 +9,7 @@ use Tests\TestCase;
 
 /**
  * Test untuk Landing Page (HomeController)
- * 
+ *
  * Memastikan halaman home menampilkan kategori dan produk dengan benar.
  */
 class HomeTest extends TestCase
@@ -50,14 +50,14 @@ class HomeTest extends TestCase
     {
         // Arrange
         $category = Category::factory()->create();
-        
+
         // Produk dengan stok (harus muncul)
         $availableProduct = Product::factory()->create([
             'category_id' => $category->id,
             'name' => 'Produk Tersedia',
             'stock' => 5,
         ]);
-        
+
         // Produk tanpa stok (tidak muncul)
         $outOfStock = Product::factory()->create([
             'category_id' => $category->id,

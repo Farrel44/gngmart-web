@@ -3,8 +3,9 @@
 namespace App\Providers;
 
 use App\Models\Category;
-use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\View;
+use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -26,7 +27,8 @@ class AppServiceProvider extends ServiceProvider
          * Memungkinkan footer mengakses $footerCategories
          * tanpa perlu pass dari setiap controller
          */
-        $footerCategories = Category::orderBy('name', 'asc')->get();
+        $footerCategories = Cache::remember('footer_categories', 3600, fn () => Category::orderBy('name', 'asc')->get()
+        );
         View::share('footerCategories', $footerCategories);
     }
 }

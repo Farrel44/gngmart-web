@@ -74,26 +74,15 @@ class PriceCalculationService
      * 1. Promosi yang di-assign langsung ke produk (promotion_product)
      * 2. Promosi yang di-assign ke kategori produk (promotion_category)
      *
+     * Jika relasi sudah di-eager load (promotions, category.promotions),
+     * gunakan collection filtering untuk menghindari N+1 queries.
+     *
      * Return null jika tidak ada promosi aktif yang berlaku
      */
     public function getBestPromotion(Product $product): ?Promotion
     {
-        $today = now()->toDateString();
-
-        // Promosi langsung pada produk
-        $directPromo = Promotion::currentlyActive()
-            ->whereHas('products', fn ($q) => $q->where('products.id', $product->id))
-            ->orderByDesc('discount_percentage')
-            ->first();
-
-        // Promosi via kategori produk
-        $categoryPromo = null;
-        if ($product->category_id) {
-            $categoryPromo = Promotion::currentlyActive()
-                ->whereHas('categories', fn ($q) => $q->where('categories.id', $product->category_id))
-                ->orderByDesc('discount_percentage')
-                ->first();
-        }
+        $directPromo = $this->getDirectPromotion($product);
+        $categoryPromo = $this->getCategoryPromotion($product);
 
         // Ambil yang memberikan diskon terbesar
         if ($directPromo && $categoryPromo) {
@@ -103,5 +92,47 @@ class PriceCalculationService
         }
 
         return $directPromo ?? $categoryPromo;
+    }
+
+    /**
+     * Cari promosi aktif yang di-assign langsung ke produk.
+     * Gunakan relasi loaded jika tersedia, fallback ke query.
+     */
+    private function getDirectPromotion(Product $product): ?Promotion
+    {
+        if ($product->relationLoaded('promotions')) {
+            return $product->promotions
+                ->filter(fn (Promotion $p) => $p->isCurrentlyActive())
+                ->sortByDesc('discount_percentage')
+                ->first();
+        }
+
+        return Promotion::currentlyActive()
+            ->whereHas('products', fn ($q) => $q->where('products.id', $product->id))
+            ->orderByDesc('discount_percentage')
+            ->first();
+    }
+
+    /**
+     * Cari promosi aktif via kategori produk.
+     * Gunakan relasi loaded jika tersedia, fallback ke query.
+     */
+    private function getCategoryPromotion(Product $product): ?Promotion
+    {
+        if (! $product->category_id) {
+            return null;
+        }
+
+        if ($product->relationLoaded('category') && $product->category?->relationLoaded('promotions')) {
+            return $product->category->promotions
+                ->filter(fn (Promotion $p) => $p->isCurrentlyActive())
+                ->sortByDesc('discount_percentage')
+                ->first();
+        }
+
+        return Promotion::currentlyActive()
+            ->whereHas('categories', fn ($q) => $q->where('categories.id', $product->category_id))
+            ->orderByDesc('discount_percentage')
+            ->first();
     }
 }

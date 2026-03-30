@@ -4,13 +4,12 @@ namespace Tests\Feature;
 
 use App\Models\Category;
 use App\Models\Product;
-use App\Models\ProductImage;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 /**
  * Test untuk Product Detail (ProductController@show)
- * 
+ *
  * Memastikan halaman detail produk menampilkan informasi dengan benar,
  * termasuk SEO meta tags dan related products.
  */
@@ -153,13 +152,13 @@ class ProductDetailTest extends TestCase
     {
         // Arrange
         $category = Category::factory()->create();
-        
+
         $mainProduct = Product::factory()->create([
             'category_id' => $category->id,
             'name' => 'Main Product',
             'stock' => 10,
         ]);
-        
+
         // Related product (same category)
         $relatedProduct = Product::factory()->create([
             'category_id' => $category->id,
@@ -180,18 +179,18 @@ class ProductDetailTest extends TestCase
         // Arrange: buat produk dari kategori berbeda
         $category1 = Category::factory()->create();
         $category2 = Category::factory()->create();
-        
+
         $mainProduct = Product::factory()->create([
             'category_id' => $category1->id,
             'stock' => 10,
         ]);
-        
+
         // Related product (same category)
         $relatedProduct = Product::factory()->create([
             'category_id' => $category1->id,
             'stock' => 10,
         ]);
-        
+
         // Different category (should not appear in related)
         $differentProduct = Product::factory()->create([
             'category_id' => $category2->id,
@@ -204,10 +203,10 @@ class ProductDetailTest extends TestCase
         // Assert: verify query logic dengan memeriksa relatedProducts dari ViewData
         // Karena response bisa contain debug output, kita test viewData langsung
         $viewData = $response->viewData('relatedProducts');
-        
+
         // Related products harus berisi produk dari kategori sama
         $this->assertTrue($viewData->contains('id', $relatedProduct->id));
-        
+
         // Related products TIDAK boleh berisi produk dari kategori berbeda
         $this->assertFalse($viewData->contains('id', $differentProduct->id));
     }
@@ -216,13 +215,13 @@ class ProductDetailTest extends TestCase
     {
         // Arrange
         $category = Category::factory()->create();
-        
+
         $mainProduct = Product::factory()->create([
             'category_id' => $category->id,
             'name' => 'Unique Main Product Name',
             'stock' => 10,
         ]);
-        
+
         $relatedProduct = Product::factory()->create([
             'category_id' => $category->id,
             'name' => 'Related Product',
@@ -235,13 +234,13 @@ class ProductDetailTest extends TestCase
         // Assert: produk utama TIDAK boleh muncul di relatedProducts collection
         // Test viewData langsung untuk akurasi (menghindari false positive dari meta tags/title)
         $viewData = $response->viewData('relatedProducts');
-        
+
         // Main product tidak boleh ada di related products
         $this->assertFalse(
             $viewData->contains('id', $mainProduct->id),
             'Main product should not appear in related products'
         );
-        
+
         // Related product harus ada di related products
         $this->assertTrue(
             $viewData->contains('id', $relatedProduct->id),

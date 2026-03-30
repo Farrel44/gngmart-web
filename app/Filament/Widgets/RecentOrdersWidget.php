@@ -3,9 +3,8 @@
 namespace App\Filament\Widgets;
 
 use App\Models\Order;
-use Filament\Tables;
-use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\BadgeColumn;
+use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Filament\Widgets\TableWidget as BaseWidget;
 
@@ -18,7 +17,7 @@ class RecentOrdersWidget extends BaseWidget
     public function table(Table $table): Table
     {
         return $table
-            ->query(Order::query()->latest()->limit(5))
+            ->query(Order::query()->with(['user', 'payment'])->latest()->limit(5))
             ->columns([
                 TextColumn::make('id')
                     ->label('ID Pesanan')
@@ -35,7 +34,7 @@ class RecentOrdersWidget extends BaseWidget
                     ->money('idr')
                     ->sortable(),
 
-                BadgeColumn::make('status')
+                BadgeColumn::make('order_status')
                     ->label('Status')
                     ->colors([
                         'warning' => 'pending',
@@ -43,11 +42,12 @@ class RecentOrdersWidget extends BaseWidget
                         'success' => 'completed',
                         'danger' => 'cancelled',
                     ])
-                    ->formatStateUsing(fn (string $state): string => match($state) {
+                    ->formatStateUsing(fn (string $state): string => match ($state) {
                         'pending' => 'Tertunda',
                         'processing' => 'Diproses',
                         'completed' => 'Selesai',
                         'cancelled' => 'Dibatalkan',
+                        default => $state,
                     }),
 
                 TextColumn::make('created_at')

@@ -38,7 +38,7 @@ class EditOrder extends EditRecord
         if (! $order->canTransitionTo($newStatus)) {
             Notification::make()
                 ->title('Transisi Status Tidak Valid')
-                ->body("Tidak dapat mengubah status dari '{$order->getStatusLabel()}' ke '" . Order::getStatusLabels()[$newStatus] . "'.")
+                ->body("Tidak dapat mengubah status dari '{$order->getStatusLabel()}' ke '".Order::getStatusLabels()[$newStatus]."'.")
                 ->danger()
                 ->send();
 

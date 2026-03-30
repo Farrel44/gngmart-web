@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep -r Admin.*should /d/File_Sekolah/PSAJ/gngmart-web/)"
+    ]
+  }
+}

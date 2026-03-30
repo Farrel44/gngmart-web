@@ -14,14 +14,18 @@ class Payment extends Model
     // Payment Method Constants
     // ========================================
     public const METHOD_TRANSFER = 'transfer';  // Transfer bank
+
     public const METHOD_EWALLET = 'ewallet';    // E-wallet (OVO, GoPay, dll)
+
     public const METHOD_COD = 'cod';            // Cash on Delivery
 
     // ========================================
     // Payment Status Constants
     // ========================================
     public const STATUS_PENDING = 'pending';    // Menunggu pembayaran/verifikasi
+
     public const STATUS_SUCCESS = 'success';    // Pembayaran berhasil diverifikasi
+
     public const STATUS_FAILED = 'failed';      // Pembayaran gagal/ditolak
 
     protected $fillable = [

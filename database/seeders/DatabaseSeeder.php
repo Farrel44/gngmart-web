@@ -46,6 +46,7 @@ class DatabaseSeeder extends Seeder
                 'name' => $name,
                 'slug' => Str::slug($name),
             ]);
+
             return [$name => $cat];
         });
 
@@ -96,7 +97,7 @@ class DatabaseSeeder extends Seeder
                 // Setiap produk mendapat 1 gambar dari folder public/images/products
                 ProductImage::create([
                     'product_id' => $product->id,
-                    'image_url' => 'images/products/' . $image,
+                    'image_url' => 'images/products/'.$image,
                 ]);
             }
         }
@@ -134,20 +135,20 @@ class DatabaseSeeder extends Seeder
         foreach ($slides as $slideData) {
             // Copy logo ke storage/app/public/carousel agar bisa diakses via asset('storage/...')
             $carouselDir = storage_path('app/public/carousel');
-            if (!is_dir($carouselDir)) {
+            if (! is_dir($carouselDir)) {
                 mkdir($carouselDir, 0755, true);
             }
 
-            $filename = 'slide-' . $slideData['order_column'] . '.png';
-            $destination = $carouselDir . '/' . $filename;
+            $filename = 'slide-'.$slideData['order_column'].'.png';
+            $destination = $carouselDir.'/'.$filename;
             $source = public_path('images/logo.png');
 
-            if (file_exists($source) && !file_exists($destination)) {
+            if (file_exists($source) && ! file_exists($destination)) {
                 copy($source, $destination);
             }
 
             CarouselSlide::create(array_merge($slideData, [
-                'image_path' => 'carousel/' . $filename,
+                'image_path' => 'carousel/'.$filename,
                 'is_active' => true,
             ]));
         }

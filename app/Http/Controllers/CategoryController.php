@@ -22,11 +22,11 @@ class CategoryController extends Controller
      */
     public function show(Category $category): View
     {
-        $products = Product::with(['category', 'images'])
+        $products = Product::with(['category', 'images', 'promotions', 'category.promotions'])
             ->where('category_id', $category->id)
             ->where('stock', '>', 0)
             ->latest()
-            ->get();
+            ->paginate(12);
 
         return view('categories.show', compact('category', 'products'));
     }

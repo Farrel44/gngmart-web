@@ -194,7 +194,7 @@ class ProductModelTest extends TestCase
 
     public function test_product_uses_slug_as_route_key(): void
     {
-        $product = new Product();
+        $product = new Product;
 
         $this->assertEquals('slug', $product->getRouteKeyName());
     }

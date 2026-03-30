@@ -9,7 +9,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('categories', function (Blueprint $table) {
-            if (!Schema::hasColumn('categories', 'slug')) {
+            if (! Schema::hasColumn('categories', 'slug')) {
                 $table->string('slug')->unique()->after('name');
             }
         });

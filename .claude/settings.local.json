@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git -C \"d:/File_Sekolah/PSAJ/gngmart-web\" log --oneline)",
+      "Bash(grep -r \"with\\\\|load\\\\|eager\" /d/File_Sekolah/PSAJ/gngmart-web/app/Filament/Resources/*.php)"
+    ]
+  }
+}

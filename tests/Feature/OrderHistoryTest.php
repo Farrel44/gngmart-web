@@ -191,7 +191,7 @@ class OrderHistoryTest extends TestCase
 
         $response->assertOk();
         $response->assertViewIs('orders.show');
-        $response->assertSee('Detail Pesanan #' . $data['pendingOrder']->id);
+        $response->assertSee('Detail Pesanan #'.$data['pendingOrder']->id);
     }
 
     public function test_order_detail_shows_items_with_price_snapshot(): void

@@ -9,7 +9,7 @@ use Tests\TestCase;
 
 /**
  * Test untuk Product Catalog (ProductController@index)
- * 
+ *
  * Memastikan fitur browse, search, filter, dan sorting bekerja dengan benar.
  */
 class ProductCatalogTest extends TestCase
@@ -28,13 +28,13 @@ class ProductCatalogTest extends TestCase
     {
         // Arrange
         $category = Category::factory()->create();
-        
+
         $inStock = Product::factory()->create([
             'category_id' => $category->id,
             'name' => 'Ada Stok',
             'stock' => 10,
         ]);
-        
+
         $outOfStock = Product::factory()->create([
             'category_id' => $category->id,
             'name' => 'Habis Stok',
@@ -53,13 +53,13 @@ class ProductCatalogTest extends TestCase
     {
         // Arrange
         $category = Category::factory()->create();
-        
+
         Product::factory()->create([
             'category_id' => $category->id,
             'name' => 'Laptop Gaming ASUS',
             'stock' => 5,
         ]);
-        
+
         Product::factory()->create([
             'category_id' => $category->id,
             'name' => 'Mouse Wireless',
@@ -79,14 +79,14 @@ class ProductCatalogTest extends TestCase
     {
         // Arrange
         $category = Category::factory()->create();
-        
+
         Product::factory()->create([
             'category_id' => $category->id,
             'name' => 'Produk A',
             'description' => 'Cocok untuk gaming dan multimedia',
             'stock' => 5,
         ]);
-        
+
         Product::factory()->create([
             'category_id' => $category->id,
             'name' => 'Produk B',
@@ -108,13 +108,13 @@ class ProductCatalogTest extends TestCase
         // Arrange
         $electronics = Category::factory()->create(['name' => 'Elektronik']);
         $fashion = Category::factory()->create(['name' => 'Fashion']);
-        
+
         Product::factory()->create([
             'category_id' => $electronics->id,
             'name' => 'Handphone Samsung',
             'stock' => 5,
         ]);
-        
+
         Product::factory()->create([
             'category_id' => $fashion->id,
             'name' => 'Kaos Polos',
@@ -135,14 +135,14 @@ class ProductCatalogTest extends TestCase
     {
         // Arrange
         $category = Category::factory()->create();
-        
+
         Product::factory()->create([
             'category_id' => $category->id,
             'name' => 'Mahal',
             'price' => 500000,
             'stock' => 5,
         ]);
-        
+
         Product::factory()->create([
             'category_id' => $category->id,
             'name' => 'Murah',
@@ -166,14 +166,14 @@ class ProductCatalogTest extends TestCase
     {
         // Arrange
         $category = Category::factory()->create();
-        
+
         Product::factory()->create([
             'category_id' => $category->id,
             'name' => 'Mahal',
             'price' => 500000,
             'stock' => 5,
         ]);
-        
+
         Product::factory()->create([
             'category_id' => $category->id,
             'name' => 'Murah',
@@ -197,19 +197,19 @@ class ProductCatalogTest extends TestCase
         // Arrange
         $electronics = Category::factory()->create(['name' => 'Elektronik']);
         $fashion = Category::factory()->create(['name' => 'Fashion']);
-        
+
         Product::factory()->create([
             'category_id' => $electronics->id,
             'name' => 'Laptop Pro',
             'stock' => 5,
         ]);
-        
+
         Product::factory()->create([
             'category_id' => $electronics->id,
             'name' => 'Handphone Pro',
             'stock' => 5,
         ]);
-        
+
         Product::factory()->create([
             'category_id' => $fashion->id,
             'name' => 'Baju Pro Max',

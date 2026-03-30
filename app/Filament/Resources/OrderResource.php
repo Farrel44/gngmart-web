@@ -13,6 +13,7 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Cache;
 
 /**
  * Resource Filament untuk mengelola pesanan dari sisi Admin.
@@ -40,7 +41,8 @@ class OrderResource extends Resource
      */
     public static function getNavigationBadge(): ?string
     {
-        $pendingCount = static::getModel()::where('order_status', Order::STATUS_PENDING)->count();
+        $pendingCount = Cache::remember('pending_orders_count', 60, fn () => static::getModel()::where('order_status', Order::STATUS_PENDING)->count()
+        );
 
         return $pendingCount > 0 ? (string) $pendingCount : null;
     }
@@ -122,6 +124,7 @@ class OrderResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->modifyQueryUsing(fn ($query) => $query->with(['user', 'payment']))
             ->columns([
                 Tables\Columns\TextColumn::make('id')
                     ->label('No. Pesanan')

@@ -7,17 +7,25 @@ use App\Models\Product;
 use App\Models\User;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
+use Illuminate\Support\Facades\Cache;
 
 class StoreStatsWidget extends BaseWidget
 {
     protected function getStats(): array
     {
-        $totalProducts = Product::count();
-        $totalUsers = User::where('email_verified_at', '!=', null)->count();
-        $totalOrders = Order::count();
-        $monthlyOrders = Order::whereMonth('created_at', now()->month)
-            ->whereYear('created_at', now()->year)
-            ->count();
+        $stats = Cache::remember('admin_store_stats', 300, fn () => [
+            'products' => Product::count(),
+            'users' => User::whereNotNull('email_verified_at')->count(),
+            'orders' => Order::count(),
+            'monthly' => Order::whereMonth('created_at', now()->month)
+                ->whereYear('created_at', now()->year)
+                ->count(),
+        ]);
+
+        $totalProducts = $stats['products'];
+        $totalUsers = $stats['users'];
+        $totalOrders = $stats['orders'];
+        $monthlyOrders = $stats['monthly'];
 
         return [
             Stat::make('Total Produk', $totalProducts)
@@ -33,7 +41,7 @@ class StoreStatsWidget extends BaseWidget
                 ->icon('heroicon-o-receipt-percent'),
 
             Stat::make('Pesanan Bulan Ini', $monthlyOrders)
-                ->description('Bulan ' . now()->format('F Y'))
+                ->description('Bulan '.now()->format('F Y'))
                 ->descriptionIcon('heroicon-m-calendar')
                 ->color('success')
                 ->icon('heroicon-o-calendar'),

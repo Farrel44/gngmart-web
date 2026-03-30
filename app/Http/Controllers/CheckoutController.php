@@ -22,7 +22,7 @@ class CheckoutController extends Controller
     {
         $cart = $this->getUserCartWithItems();
 
-        if (!$cart || $cart->items->isEmpty()) {
+        if (! $cart || $cart->items->isEmpty()) {
             return redirect()->route('cart.index')
                 ->with('error', 'Keranjang kosong. Silakan tambahkan produk terlebih dahulu.');
         }
@@ -57,7 +57,7 @@ class CheckoutController extends Controller
 
     /**
      * Proses checkout dan buat order baru.
-     * 
+     *
      * Flow dalam DB::transaction untuk menjaga integritas data:
      * 1. Validasi stok semua item
      * 2. Buat order dengan status pending
@@ -80,7 +80,7 @@ class CheckoutController extends Controller
 
         $cart = $this->getUserCartWithItems();
 
-        if (!$cart || $cart->items->isEmpty()) {
+        if (! $cart || $cart->items->isEmpty()) {
             return redirect()->route('cart.index')
                 ->with('error', 'Keranjang kosong. Tidak bisa checkout.');
         }
@@ -102,7 +102,7 @@ class CheckoutController extends Controller
                 $this->validateStock($selectedItems);
 
                 // 2. Hitung total harga dari selected items saja
-                $totalPrice = $selectedItems->sum(fn($item) => $item->getSubtotal());
+                $totalPrice = $selectedItems->sum(fn ($item) => $item->getSubtotal());
 
                 // 3. Buat order baru
                 $order = Order::create([
@@ -166,7 +166,7 @@ class CheckoutController extends Controller
         $insufficientItems = [];
 
         foreach ($items as $item) {
-            $currentStock = Product::where('id', $item->product_id)->value('stock');
+            $currentStock = Product::lockForUpdate()->where('id', $item->product_id)->value('stock');
 
             if ($currentStock < $item->quantity) {
                 $insufficientItems[] = sprintf(
@@ -178,9 +178,9 @@ class CheckoutController extends Controller
             }
         }
 
-        if (!empty($insufficientItems)) {
+        if (! empty($insufficientItems)) {
             throw \Illuminate\Validation\ValidationException::withMessages([
-                'stock' => 'Stok tidak mencukupi untuk: ' . implode(', ', $insufficientItems),
+                'stock' => 'Stok tidak mencukupi untuk: '.implode(', ', $insufficientItems),
             ]);
         }
     }

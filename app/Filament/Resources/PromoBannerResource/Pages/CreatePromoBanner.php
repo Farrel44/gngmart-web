@@ -3,7 +3,6 @@
 namespace App\Filament\Resources\PromoBannerResource\Pages;
 
 use App\Filament\Resources\PromoBannerResource;
-use Filament\Actions;
 use Filament\Resources\Pages\CreateRecord;
 
 class CreatePromoBanner extends CreateRecord

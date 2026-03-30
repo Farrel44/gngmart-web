@@ -23,6 +23,7 @@ class Product extends Model
         'price',
         'discount_price',
         'stock',
+        'weight',
         'meta_title',
         'meta_description',
         'meta_keywords',
@@ -56,7 +57,7 @@ class Product extends Model
         });
 
         static::updating(function (Product $product) {
-            if ($product->isDirty('name') && !$product->isDirty('slug')) {
+            if ($product->isDirty('name') && ! $product->isDirty('slug')) {
                 $product->slug = Str::slug($product->name);
             }
         });

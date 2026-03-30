@@ -2,9 +2,9 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Builder;
 
 /**
  * Model PromoBanner
@@ -59,7 +59,7 @@ class PromoBanner extends Model
      */
     public function getGradientStyle(): string
     {
-        return self::$gradientMap[$this->background_color] 
+        return self::$gradientMap[$this->background_color]
             ?? self::$gradientMap['from-green-300 via-green-400 to-green-500'];
     }
 }

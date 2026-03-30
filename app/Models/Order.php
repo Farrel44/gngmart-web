@@ -17,10 +17,15 @@ class Order extends Model
     // Flow: pending → paid → processing → shipped → completed
     // ========================================
     public const STATUS_PENDING = 'pending';       // Menunggu pembayaran
+
     public const STATUS_PAID = 'paid';             // Sudah bayar, menunggu diproses
+
     public const STATUS_PROCESSING = 'processing'; // Sedang diproses/dikemas
+
     public const STATUS_SHIPPED = 'shipped';       // Dalam pengiriman
+
     public const STATUS_COMPLETED = 'completed';   // Selesai (diterima)
+
     public const STATUS_CANCELLED = 'cancelled';   // Dibatalkan
 
     /**

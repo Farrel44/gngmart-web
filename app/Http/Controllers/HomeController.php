@@ -33,9 +33,10 @@ class HomeController extends Controller
             ->orderBy('name')
             ->get();
 
-        $featuredProducts = Product::with(['category', 'images'])
+        $featuredProducts = Product::with(['category', 'images', 'promotions', 'category.promotions'])
             ->where('stock', '>', 0)
             ->latest()
+            ->limit(12)
             ->get();
 
         return view('home', compact('slides', 'categories', 'featuredProducts', 'promoSlide'));
