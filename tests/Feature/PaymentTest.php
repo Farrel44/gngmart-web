@@ -9,8 +9,6 @@ use App\Models\Payment;
 use App\Models\Product;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 /**
@@ -19,8 +17,8 @@ use Tests\TestCase;
  * Covers:
  * - Payment page access dan guards
  * - Payment method selection
- * - Bukti bayar upload (transfer/ewallet)
  * - COD flow (tanpa bukti bayar)
+ * - Midtrans BCA flow
  */
 class PaymentTest extends TestCase
 {
@@ -85,8 +83,6 @@ class PaymentTest extends TestCase
 
     public function test_user_cannot_pay_for_other_users_order(): void
     {
-        Storage::fake('public');
-
         $data = $this->createUserWithPendingOrder();
         $otherUser = User::factory()->create();
 
@@ -137,7 +133,7 @@ class PaymentTest extends TestCase
         // Create existing payment
         Payment::create([
             'order_id' => $data['order']->id,
-            'payment_method' => Payment::METHOD_TRANSFER,
+            'payment_method' => Payment::METHOD_COD,
             'payment_status' => Payment::STATUS_PENDING,
             'payment_date' => now(),
         ]);
@@ -191,77 +187,6 @@ class PaymentTest extends TestCase
     }
 
     // ========================================
-    // Transfer Payment Tests
-    // ========================================
-
-    public function test_user_can_pay_with_transfer_and_upload_proof(): void
-    {
-        Storage::fake('public');
-
-        $data = $this->createUserWithPendingOrder();
-
-        $this->actingAs($data['user']);
-
-        $file = UploadedFile::fake()->image('bukti-transfer.jpg', 800, 600);
-
-        $response = $this->post(route('payment.store', $data['order']), [
-            'payment_method' => Payment::METHOD_TRANSFER,
-            'payment_proof' => $file,
-        ]);
-
-        $response->assertRedirect(route('orders.show', $data['order']));
-        $response->assertSessionHas('success');
-
-        // Verify payment record has proof
-        $payment = Payment::where('order_id', $data['order']->id)->first();
-        $this->assertNotNull($payment->payment_proof);
-        $this->assertEquals(Payment::METHOD_TRANSFER, $payment->payment_method);
-
-        // Verify file was stored
-        Storage::disk('public')->assertExists($payment->payment_proof);
-    }
-
-    public function test_transfer_payment_requires_proof(): void
-    {
-        $data = $this->createUserWithPendingOrder();
-
-        $this->actingAs($data['user']);
-
-        $response = $this->post(route('payment.store', $data['order']), [
-            'payment_method' => Payment::METHOD_TRANSFER,
-            // No payment_proof
-        ]);
-
-        $response->assertSessionHasErrors('payment_proof');
-    }
-
-    // ========================================
-    // E-wallet Payment Tests
-    // ========================================
-
-    public function test_user_can_pay_with_ewallet_and_upload_proof(): void
-    {
-        Storage::fake('public');
-
-        $data = $this->createUserWithPendingOrder();
-
-        $this->actingAs($data['user']);
-
-        $file = UploadedFile::fake()->image('bukti-ewallet.png', 400, 800);
-
-        $response = $this->post(route('payment.store', $data['order']), [
-            'payment_method' => Payment::METHOD_EWALLET,
-            'payment_proof' => $file,
-        ]);
-
-        $response->assertRedirect(route('orders.show', $data['order']));
-
-        $payment = Payment::where('order_id', $data['order']->id)->first();
-        $this->assertEquals(Payment::METHOD_EWALLET, $payment->payment_method);
-        $this->assertNotNull($payment->payment_proof);
-    }
-
-    // ========================================
     // Validation Tests
     // ========================================
 
@@ -289,61 +214,6 @@ class PaymentTest extends TestCase
         $response->assertSessionHasErrors('payment_method');
     }
 
-    public function test_payment_proof_must_be_image(): void
-    {
-        Storage::fake('public');
-
-        $data = $this->createUserWithPendingOrder();
-
-        $this->actingAs($data['user']);
-
-        $file = UploadedFile::fake()->create('document.pdf', 100);
-
-        $response = $this->post(route('payment.store', $data['order']), [
-            'payment_method' => Payment::METHOD_TRANSFER,
-            'payment_proof' => $file,
-        ]);
-
-        $response->assertSessionHasErrors('payment_proof');
-    }
-
-    public function test_payment_proof_must_be_jpg_or_png(): void
-    {
-        Storage::fake('public');
-
-        $data = $this->createUserWithPendingOrder();
-
-        $this->actingAs($data['user']);
-
-        $file = UploadedFile::fake()->image('bukti.gif');
-
-        $response = $this->post(route('payment.store', $data['order']), [
-            'payment_method' => Payment::METHOD_TRANSFER,
-            'payment_proof' => $file,
-        ]);
-
-        $response->assertSessionHasErrors('payment_proof');
-    }
-
-    public function test_payment_proof_max_size_2mb(): void
-    {
-        Storage::fake('public');
-
-        $data = $this->createUserWithPendingOrder();
-
-        $this->actingAs($data['user']);
-
-        // Create file larger than 2MB
-        $file = UploadedFile::fake()->image('bukti.jpg')->size(3000);
-
-        $response = $this->post(route('payment.store', $data['order']), [
-            'payment_method' => Payment::METHOD_TRANSFER,
-            'payment_proof' => $file,
-        ]);
-
-        $response->assertSessionHasErrors('payment_proof');
-    }
-
     // ========================================
     // Double Payment Prevention Tests
     // ========================================
@@ -363,7 +233,7 @@ class PaymentTest extends TestCase
         $this->actingAs($data['user']);
 
         $response = $this->post(route('payment.store', $data['order']), [
-            'payment_method' => Payment::METHOD_TRANSFER,
+            'payment_method' => Payment::METHOD_COD,
         ]);
 
         $response->assertRedirect(route('orders.show', $data['order']));
@@ -379,13 +249,11 @@ class PaymentTest extends TestCase
 
     public function test_payment_requires_proof_method(): void
     {
-        $transferPayment = new Payment(['payment_method' => Payment::METHOD_TRANSFER]);
-        $ewalletPayment = new Payment(['payment_method' => Payment::METHOD_EWALLET]);
         $codPayment = new Payment(['payment_method' => Payment::METHOD_COD]);
+        $midtransPayment = new Payment(['payment_method' => Payment::METHOD_MIDTRANS]);
 
-        $this->assertTrue($transferPayment->requiresProof());
-        $this->assertTrue($ewalletPayment->requiresProof());
         $this->assertFalse($codPayment->requiresProof());
+        $this->assertFalse($midtransPayment->requiresProof());
     }
 
     public function test_payment_is_verified_method(): void
@@ -424,25 +292,6 @@ class PaymentTest extends TestCase
     }
 
     // ========================================
-    // GAP: E-wallet Proof Required
-    // ========================================
-
-    public function test_ewallet_payment_requires_proof(): void
-    {
-        $data = $this->createUserWithPendingOrder();
-
-        $this->actingAs($data['user']);
-
-        // E-wallet tanpa bukti bayar harus gagal
-        $response = $this->post(route('payment.store', $data['order']), [
-            'payment_method' => Payment::METHOD_EWALLET,
-            // No payment_proof
-        ]);
-
-        $response->assertSessionHasErrors('payment_proof');
-    }
-
-    // ========================================
     // GAP: Nonexistent Order
     // ========================================
 
@@ -474,13 +323,11 @@ class PaymentTest extends TestCase
 
     public function test_payment_method_label(): void
     {
-        $transfer = new Payment(['payment_method' => Payment::METHOD_TRANSFER]);
-        $ewallet = new Payment(['payment_method' => Payment::METHOD_EWALLET]);
         $cod = new Payment(['payment_method' => Payment::METHOD_COD]);
+        $midtrans = new Payment(['payment_method' => Payment::METHOD_MIDTRANS]);
 
-        $this->assertEquals('Transfer Bank', $transfer->getMethodLabel());
-        $this->assertEquals('E-Wallet', $ewallet->getMethodLabel());
         $this->assertEquals('Bayar di Tempat (COD)', $cod->getMethodLabel());
+        $this->assertEquals('Transfer Bank (BCA)', $midtrans->getMethodLabel());
     }
 
     public function test_payment_status_label(): void

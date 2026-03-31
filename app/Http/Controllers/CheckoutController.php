@@ -127,6 +127,11 @@ class CheckoutController extends Controller
                 // 5. Hapus hanya item yang diproses — sisanya tetap di cart
                 $cart->items()->whereIn('id', $selectedItems->pluck('id'))->delete();
 
+                // 6. Simpan alamat ke profil user jika berubah atau belum ada
+                if ($user->address !== $validated['address_shipment']) {
+                    $user->update(['address' => $validated['address_shipment']]);
+                }
+
                 return $order;
             });
 

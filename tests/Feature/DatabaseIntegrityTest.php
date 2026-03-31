@@ -118,7 +118,7 @@ class DatabaseIntegrityTest extends TestCase
         $this->actingAs($user);
 
         $response = $this->post(route('payment.store', $order), [
-            'payment_method' => Payment::METHOD_TRANSFER,
+            'payment_method' => Payment::METHOD_COD,
         ]);
 
         // Harus ditolak

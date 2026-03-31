@@ -67,10 +67,6 @@
 
                         @auth
                             {{-- Authenticated user menu --}}
-                            <a href="{{ route('dashboard') }}" 
-                               class="text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 font-medium transition-colors">
-                                Dashboard
-                            </a>
                             <div x-data="{ open: false }" class="relative">
                                 <button @click="open = !open" 
                                         class="flex items-center text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 font-medium transition-colors">
@@ -172,11 +168,6 @@
                             </h3>
                             <ul class="mt-4 space-y-2">
                                 @auth
-                                    <li>
-                                        <a href="{{ route('dashboard') }}" class="text-sm text-gray-500 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400">
-                                            Dashboard
-                                        </a>
-                                    </li>
                                     <li>
                                         <a href="{{ route('profile.edit') }}" class="text-sm text-gray-500 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400">
                                             Profil

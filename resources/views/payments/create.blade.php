@@ -83,7 +83,7 @@
                 Pilih Metode Pembayaran
             </h2>
 
-            <form method="POST" action="{{ route('payment.store', $order) }}" enctype="multipart/form-data" id="payment-form">
+            <form method="POST" action="{{ route('payment.store', $order) }}" id="payment-form">
                 @csrf
 
                 {{-- Payment Method Options --}}
@@ -101,41 +101,12 @@
                                 <span class="font-medium text-sm text-gray-900">{{ $label }}</span>
                                 @if($method === 'cod')
                                     <p class="text-xs text-gray-500">Bayar tunai saat pesanan diantar</p>
-                                @elseif($method === 'transfer')
-                                    <p class="text-xs text-gray-500">Transfer ke rekening toko, upload bukti bayar</p>
-                                @elseif($method === 'ewallet')
-                                    <p class="text-xs text-gray-500">OVO, GoPay, DANA, dll — upload screenshot</p>
                                 @elseif($method === 'midtrans')
                                     <p class="text-xs text-gray-500">Bayar via Virtual Account BCA (otomatis terverifikasi)</p>
                                 @endif
                             </div>
                         </label>
                     @endforeach
-                </div>
-
-                {{-- Upload Bukti Bayar (transfer/ewallet only) --}}
-                <div id="proof-upload-section" class="hidden mb-6">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">
-                        Unggah Bukti Pembayaran <span class="text-red-500">*</span>
-                    </label>
-
-                    <div class="mb-3 bg-red-50 rounded-xl p-3 text-sm">
-                        <p class="font-medium text-red-800 mb-1">Informasi Transfer:</p>
-                        <p class="text-red-700">Bank BCA: 1234567890</p>
-                        <p class="text-red-700">a.n. GNG Mart</p>
-                    </div>
-
-                    <input type="file"
-                           name="payment_proof"
-                           id="payment_proof"
-                           accept="image/jpeg,image/png"
-                           class="block w-full text-sm text-gray-500
-                                  file:mr-4 file:py-2 file:px-4
-                                  file:rounded-xl file:border-0
-                                  file:text-sm file:font-semibold
-                                  file:bg-red-50 file:text-red-700
-                                  hover:file:bg-red-100">
-                    <p class="mt-1 text-xs text-gray-400">Format: JPG, PNG. Maksimal 2MB.</p>
                 </div>
 
                 {{-- COD Info --}}
@@ -194,18 +165,14 @@
     function togglePaymentMethod(method) {
         selectedMethod.value = method;
 
-        const proofSection = document.getElementById('proof-upload-section');
         const codSection = document.getElementById('cod-info-section');
         const midtransSection = document.getElementById('midtrans-info-section');
-        const proofInput = document.getElementById('payment_proof');
         const submitBtn = document.getElementById('submit-btn');
         const midtransBtn = document.getElementById('midtrans-pay-btn');
 
         // Reset all sections
-        proofSection.classList.add('hidden');
         codSection.classList.add('hidden');
         midtransSection.classList.add('hidden');
-        proofInput.removeAttribute('required');
 
         if (method === 'midtrans') {
             midtransSection.classList.remove('hidden');
@@ -213,12 +180,6 @@
             midtransBtn.classList.remove('hidden');
         } else if (method === 'cod') {
             codSection.classList.remove('hidden');
-            submitBtn.classList.remove('hidden');
-            midtransBtn.classList.add('hidden');
-            submitBtn.disabled = false;
-        } else {
-            proofSection.classList.remove('hidden');
-            proofInput.setAttribute('required', 'required');
             submitBtn.classList.remove('hidden');
             midtransBtn.classList.add('hidden');
             submitBtn.disabled = false;

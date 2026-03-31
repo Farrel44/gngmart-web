@@ -35,10 +35,6 @@ Route::get('/search', [SearchController::class, 'results'])->name('search.result
 Route::get('/search/suggestions', [SearchController::class, 'suggestions'])->name('search.suggestions');
 Route::get('/search/popular', [SearchController::class, 'popular'])->name('search.popular');
 
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
-
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::get('/profile/show', [ProfileController::class, 'show'])->name('profile.show');
@@ -78,7 +74,7 @@ Route::middleware('auth')->group(function () {
     | Payment Routes
     |--------------------------------------------------------------------------
     | Flow: Checkout → Payment Method → Order History
-    | User memilih metode bayar dan upload bukti (jika transfer/ewallet).
+    | User memilih metode bayar (COD atau Transfer BCA via Midtrans).
     */
     Route::get('/orders/{order}/payment', [PaymentController::class, 'create'])->name('payment.create');
     Route::post('/orders/{order}/payment', [PaymentController::class, 'store'])->name('payment.store');

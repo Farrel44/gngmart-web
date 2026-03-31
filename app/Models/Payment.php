@@ -13,13 +13,9 @@ class Payment extends Model
     // ========================================
     // Payment Method Constants
     // ========================================
-    public const METHOD_TRANSFER = 'transfer';  // Transfer bank
-
-    public const METHOD_EWALLET = 'ewallet';    // E-wallet (OVO, GoPay, dll)
-
     public const METHOD_COD = 'cod';            // Cash on Delivery
 
-    public const METHOD_MIDTRANS = 'midtrans';  // Midtrans (BCA VA, dll)
+    public const METHOD_MIDTRANS = 'midtrans';  // Midtrans (BCA VA)
 
     // ========================================
     // Payment Status Constants
@@ -57,8 +53,6 @@ class Payment extends Model
     public static function getMethods(): array
     {
         return [
-            self::METHOD_TRANSFER,
-            self::METHOD_EWALLET,
             self::METHOD_COD,
             self::METHOD_MIDTRANS,
         ];
@@ -70,8 +64,6 @@ class Payment extends Model
     public static function getMethodLabels(): array
     {
         return [
-            self::METHOD_TRANSFER => 'Transfer Bank',
-            self::METHOD_EWALLET => 'E-Wallet',
             self::METHOD_COD => 'Bayar di Tempat (COD)',
             self::METHOD_MIDTRANS => 'Transfer Bank (BCA)',
         ];
@@ -123,11 +115,11 @@ class Payment extends Model
 
     /**
      * Cek apakah metode pembayaran memerlukan bukti bayar.
-     * COD tidak perlu bukti, transfer & e-wallet perlu.
+     * COD dan Midtrans tidak perlu bukti bayar manual.
      */
     public function requiresProof(): bool
     {
-        return ! in_array($this->payment_method, [self::METHOD_COD, self::METHOD_MIDTRANS]);
+        return false;
     }
 
     /**

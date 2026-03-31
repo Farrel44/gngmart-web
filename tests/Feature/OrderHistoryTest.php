@@ -226,7 +226,7 @@ class OrderHistoryTest extends TestCase
         // Add payment to pending order
         Payment::create([
             'order_id' => $data['pendingOrder']->id,
-            'payment_method' => Payment::METHOD_TRANSFER,
+            'payment_method' => Payment::METHOD_COD,
             'payment_status' => Payment::STATUS_PENDING,
             'payment_date' => now(),
         ]);
@@ -235,7 +235,7 @@ class OrderHistoryTest extends TestCase
 
         $response = $this->get(route('orders.show', $data['pendingOrder']));
 
-        $response->assertSee('Transfer Bank');
+        $response->assertSee('Bayar di Tempat (COD)');
         $response->assertSee('Menunggu Verifikasi');
     }
 

@@ -17,10 +17,9 @@ use Midtrans\Snap;
  * Controller untuk menangani pembayaran dari sisi User.
  *
  * Flow:
- * 1. User memilih metode pembayaran (transfer/e-wallet/COD/Midtrans BCA)
- * 2. Jika transfer/e-wallet: upload bukti bayar → status pending → tunggu verifikasi admin
- * 3. Jika COD: langsung masuk antrean admin dengan payment status pending
- * 4. Jika Midtrans: generate Snap token → popup pembayaran → callback update status
+ * 1. User memilih metode pembayaran (COD / Midtrans BCA)
+ * 2. Jika COD: langsung masuk antrean admin dengan payment status pending
+ * 3. Jika Midtrans: generate Snap token → popup pembayaran → callback update status
  */
 class PaymentController extends Controller
 {
@@ -78,7 +77,7 @@ class PaymentController extends Controller
     /**
      * Proses dan simpan pembayaran.
      *
-     * Untuk COD/transfer/ewallet: simpan seperti biasa.
+     * Untuk COD: simpan langsung.
      * Untuk Midtrans: buat payment record, generate Snap token, return JSON.
      */
     public function store(Request $request, Order $order): RedirectResponse|JsonResponse
@@ -99,19 +98,9 @@ class PaymentController extends Controller
 
         $validated = $request->validate([
             'payment_method' => ['required', 'in:'.implode(',', Payment::getMethods())],
-            'payment_proof' => [
-                ! in_array($request->payment_method, [Payment::METHOD_COD, Payment::METHOD_MIDTRANS]) ? 'required' : 'nullable',
-                'image',
-                'mimes:jpg,jpeg,png',
-                'max:2048',
-            ],
         ], [
             'payment_method.required' => 'Pilih metode pembayaran.',
             'payment_method.in' => 'Metode pembayaran tidak valid.',
-            'payment_proof.required' => 'Bukti pembayaran wajib diunggah untuk metode ini.',
-            'payment_proof.image' => 'File harus berupa gambar.',
-            'payment_proof.mimes' => 'Format file harus JPG atau PNG.',
-            'payment_proof.max' => 'Ukuran file maksimal 2MB.',
         ]);
 
         // Midtrans flow: buat payment + generate Snap token
@@ -119,8 +108,8 @@ class PaymentController extends Controller
             return $this->handleMidtransPayment($order);
         }
 
-        // COD / transfer / ewallet flow (existing)
-        return $this->handleManualPayment($request, $order, $validated);
+        // COD flow
+        return $this->handleManualPayment($order, $validated);
     }
 
     /**
@@ -220,16 +209,11 @@ class PaymentController extends Controller
     }
 
     /**
-     * Handle manual payment (COD / transfer / ewallet).
+     * Handle COD payment.
      */
-    private function handleManualPayment(Request $request, Order $order, array $validated): RedirectResponse
+    private function handleManualPayment(Order $order, array $validated): RedirectResponse
     {
-        $proofPath = null;
-        if ($request->hasFile('payment_proof')) {
-            $proofPath = $request->file('payment_proof')->store('payment_proofs', 'public');
-        }
-
-        $message = DB::transaction(function () use ($order, $validated, $proofPath) {
+        $message = DB::transaction(function () use ($order, $validated) {
             $lockedOrder = Order::lockForUpdate()->find($order->id);
 
             $existingPayment = $lockedOrder->payment;
@@ -245,13 +229,10 @@ class PaymentController extends Controller
                 'order_id' => $lockedOrder->id,
                 'payment_method' => $validated['payment_method'],
                 'payment_status' => Payment::STATUS_PENDING,
-                'payment_proof' => $proofPath,
                 'payment_date' => now(),
             ]);
 
-            return $validated['payment_method'] === Payment::METHOD_COD
-                ? 'Pesanan berhasil dibuat dengan metode COD. Siapkan uang tunai saat pesanan diantar.'
-                : 'Bukti pembayaran berhasil diunggah. Tunggu verifikasi dari admin.';
+            return 'Pesanan berhasil dibuat dengan metode COD. Siapkan uang tunai saat pesanan diantar.';
         });
 
         if ($message === null) {
