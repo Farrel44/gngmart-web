@@ -1,7 +1,10 @@
 {
   "permissions": {
     "allow": [
-      "Bash(grep -r Admin.*should /d/File_Sekolah/PSAJ/gngmart-web/)"
+      "Bash(grep -r Admin.*should /d/File_Sekolah/PSAJ/gngmart-web/)",
+      "Bash(php -l app/Filament/Resources/OrderResource.php)",
+      "Bash(php -l routes/web.php)",
+      "Bash(./vendor/bin/pint app/Http/Controllers/PaymentController.php app/Http/Controllers/MidtransController.php app/Filament/Resources/OrderResource.php)"
     ]
   }
 }

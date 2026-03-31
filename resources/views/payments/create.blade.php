@@ -24,6 +24,11 @@
         </div>
     @endif
 
+    {{-- Midtrans error message container --}}
+    <div id="midtrans-error" class="mb-4 bg-red-50 border border-red-200 rounded-xl p-4 hidden">
+        <p class="text-sm text-red-700 font-medium" id="midtrans-error-text"></p>
+    </div>
+
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
         {{-- LEFT: Ringkasan Pesanan --}}
@@ -91,7 +96,7 @@
                                    value="{{ $method }}"
                                    class="h-4 w-4 text-red-600 focus:ring-red-500"
                                    {{ old('payment_method') === $method ? 'checked' : '' }}
-                                   onchange="toggleProofUpload(this.value)">
+                                   onchange="togglePaymentMethod(this.value)">
                             <div class="ml-3">
                                 <span class="font-medium text-sm text-gray-900">{{ $label }}</span>
                                 @if($method === 'cod')
@@ -100,6 +105,8 @@
                                     <p class="text-xs text-gray-500">Transfer ke rekening toko, upload bukti bayar</p>
                                 @elseif($method === 'ewallet')
                                     <p class="text-xs text-gray-500">OVO, GoPay, DANA, dll — upload screenshot</p>
+                                @elseif($method === 'midtrans')
+                                    <p class="text-xs text-gray-500">Bayar via Virtual Account BCA (otomatis terverifikasi)</p>
                                 @endif
                             </div>
                         </label>
@@ -140,11 +147,28 @@
                     </p>
                 </div>
 
+                {{-- Midtrans Info --}}
+                <div id="midtrans-info-section" class="hidden mb-6 bg-blue-50 rounded-xl p-3">
+                    <p class="text-sm text-blue-800">
+                        <strong>Transfer BCA Virtual Account:</strong> Anda akan diarahkan ke halaman pembayaran Midtrans.
+                        Pembayaran akan otomatis terverifikasi setelah transfer berhasil.
+                    </p>
+                </div>
+
+                {{-- Submit for non-midtrans --}}
                 <button type="submit"
                         id="submit-btn"
                         disabled
                         class="w-full bg-red-600 text-white font-semibold py-3 rounded-xl hover:bg-red-700 transition disabled:opacity-40 disabled:cursor-not-allowed">
                     Konfirmasi Pembayaran
+                </button>
+
+                {{-- Midtrans pay button (hidden by default) --}}
+                <button type="button"
+                        id="midtrans-pay-btn"
+                        class="hidden w-full bg-red-600 text-white font-semibold py-3 rounded-xl hover:bg-red-700 transition"
+                        onclick="payWithMidtrans()">
+                    Bayar dengan BCA Virtual Account
                 </button>
             </form>
         </div>
@@ -161,31 +185,123 @@
     </div>
 </div>
 
+{{-- Midtrans Snap.js (sandbox) --}}
+<script src="{{ config('midtrans.is_production') ? 'https://app.midtrans.com/snap/snap.js' : 'https://app.sandbox.midtrans.com/snap/snap.js' }}" data-client-key="{{ $midtransClientKey }}"></script>
+
 <script>
-    function toggleProofUpload(method) {
+    const selectedMethod = { value: null };
+
+    function togglePaymentMethod(method) {
+        selectedMethod.value = method;
+
         const proofSection = document.getElementById('proof-upload-section');
         const codSection = document.getElementById('cod-info-section');
+        const midtransSection = document.getElementById('midtrans-info-section');
         const proofInput = document.getElementById('payment_proof');
         const submitBtn = document.getElementById('submit-btn');
+        const midtransBtn = document.getElementById('midtrans-pay-btn');
 
-        if (method === 'cod') {
-            proofSection.classList.add('hidden');
+        // Reset all sections
+        proofSection.classList.add('hidden');
+        codSection.classList.add('hidden');
+        midtransSection.classList.add('hidden');
+        proofInput.removeAttribute('required');
+
+        if (method === 'midtrans') {
+            midtransSection.classList.remove('hidden');
+            submitBtn.classList.add('hidden');
+            midtransBtn.classList.remove('hidden');
+        } else if (method === 'cod') {
             codSection.classList.remove('hidden');
-            proofInput.removeAttribute('required');
+            submitBtn.classList.remove('hidden');
+            midtransBtn.classList.add('hidden');
+            submitBtn.disabled = false;
         } else {
             proofSection.classList.remove('hidden');
-            codSection.classList.add('hidden');
             proofInput.setAttribute('required', 'required');
+            submitBtn.classList.remove('hidden');
+            midtransBtn.classList.add('hidden');
+            submitBtn.disabled = false;
         }
+    }
 
-        submitBtn.disabled = false;
+    function payWithMidtrans() {
+        const btn = document.getElementById('midtrans-pay-btn');
+        const errorDiv = document.getElementById('midtrans-error');
+        const errorText = document.getElementById('midtrans-error-text');
+
+        btn.disabled = true;
+        btn.textContent = 'Memproses...';
+        errorDiv.classList.add('hidden');
+
+        @if($existingSnapToken)
+            // Sudah ada snap token, langsung buka popup
+            openSnapPopup('{{ $existingSnapToken }}');
+            btn.disabled = false;
+            btn.textContent = 'Bayar dengan BCA Virtual Account';
+            return;
+        @endif
+
+        // Request Snap token dari server
+        fetch('{{ route("payment.store", $order) }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json',
+            },
+            body: JSON.stringify({
+                payment_method: 'midtrans',
+            }),
+        })
+        .then(response => response.json())
+        .then(data => {
+            btn.disabled = false;
+            btn.textContent = 'Bayar dengan BCA Virtual Account';
+
+            if (data.error) {
+                errorText.textContent = data.error;
+                errorDiv.classList.remove('hidden');
+                return;
+            }
+
+            if (data.snap_token) {
+                openSnapPopup(data.snap_token);
+            }
+        })
+        .catch(error => {
+            btn.disabled = false;
+            btn.textContent = 'Bayar dengan BCA Virtual Account';
+            errorText.textContent = 'Terjadi kesalahan. Silakan coba lagi.';
+            errorDiv.classList.remove('hidden');
+        });
+    }
+
+    function openSnapPopup(token) {
+        window.snap.pay(token, {
+            onSuccess: function(result) {
+                window.location.href = '{{ route("orders.show", $order) }}';
+            },
+            onPending: function(result) {
+                window.location.href = '{{ route("orders.show", $order) }}';
+            },
+            onError: function(result) {
+                const errorDiv = document.getElementById('midtrans-error');
+                const errorText = document.getElementById('midtrans-error-text');
+                errorText.textContent = 'Pembayaran gagal. Silakan coba lagi.';
+                errorDiv.classList.remove('hidden');
+            },
+            onClose: function() {
+                // User menutup popup tanpa menyelesaikan pembayaran
+            }
+        });
     }
 
     // Re-apply state if old value exists (validation failure)
     document.addEventListener('DOMContentLoaded', function() {
         const checkedRadio = document.querySelector('input[name="payment_method"]:checked');
         if (checkedRadio) {
-            toggleProofUpload(checkedRadio.value);
+            togglePaymentMethod(checkedRadio.value);
         }
     });
 </script>

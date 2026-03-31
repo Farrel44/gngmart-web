@@ -215,8 +215,9 @@ class OrderResource extends Resource
                     ->modalHeading('Verifikasi Pembayaran')
                     ->modalDescription('Yakin ingin memverifikasi pembayaran ini? Status order akan otomatis berubah menjadi "Sudah Dibayar".')
                     ->modalSubmitActionLabel('Ya, Verifikasi')
-                    // Hanya tampilkan jika ada payment dengan status pending
-                    ->visible(fn (Order $record): bool => $record->payment?->payment_status === Payment::STATUS_PENDING)
+                    // Tampilkan jika ada payment pending (non-midtrans, karena midtrans auto-verify via callback)
+                    ->visible(fn (Order $record): bool => $record->payment?->payment_status === Payment::STATUS_PENDING
+                        && $record->payment?->payment_method !== Payment::METHOD_MIDTRANS)
                     ->action(function (Order $record): void {
                         // Update payment status ke success
                         $record->payment->update([
@@ -339,6 +340,10 @@ class OrderResource extends Resource
                         Infolists\Components\TextEntry::make('payment.payment_date')
                             ->label('Tanggal Bayar')
                             ->dateTime('d M Y, H:i'),
+
+                        Infolists\Components\TextEntry::make('payment.midtrans_transaction_id')
+                            ->label('ID Transaksi Midtrans')
+                            ->visible(fn ($record) => $record->payment?->midtrans_transaction_id !== null),
 
                         Infolists\Components\ImageEntry::make('payment.payment_proof')
                             ->label('Bukti Pembayaran')

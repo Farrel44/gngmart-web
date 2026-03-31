@@ -4,6 +4,7 @@ use App\Http\Controllers\CartController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\MidtransController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProductController;
@@ -93,5 +94,15 @@ Route::middleware('auth')->group(function () {
     Route::get('/orders/{order}', [OrderController::class, 'show'])->name('orders.show');
     Route::delete('/orders/{order}', [OrderController::class, 'cancel'])->name('orders.cancel');
 });
+
+/*
+|--------------------------------------------------------------------------
+| Midtrans Webhook
+|--------------------------------------------------------------------------
+| Endpoint untuk menerima notification dari Midtrans.
+| Harus bisa diakses publik tanpa auth dan tanpa CSRF.
+*/
+Route::post('/midtrans/notification', [MidtransController::class, 'notification'])
+    ->name('midtrans.notification');
 
 require __DIR__.'/auth.php';

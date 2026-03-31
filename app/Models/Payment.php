@@ -19,6 +19,8 @@ class Payment extends Model
 
     public const METHOD_COD = 'cod';            // Cash on Delivery
 
+    public const METHOD_MIDTRANS = 'midtrans';  // Midtrans (BCA VA, dll)
+
     // ========================================
     // Payment Status Constants
     // ========================================
@@ -34,6 +36,8 @@ class Payment extends Model
         'payment_status',
         'payment_proof',
         'payment_date',
+        'snap_token',
+        'midtrans_transaction_id',
     ];
 
     protected function casts(): array
@@ -56,6 +60,7 @@ class Payment extends Model
             self::METHOD_TRANSFER,
             self::METHOD_EWALLET,
             self::METHOD_COD,
+            self::METHOD_MIDTRANS,
         ];
     }
 
@@ -68,6 +73,7 @@ class Payment extends Model
             self::METHOD_TRANSFER => 'Transfer Bank',
             self::METHOD_EWALLET => 'E-Wallet',
             self::METHOD_COD => 'Bayar di Tempat (COD)',
+            self::METHOD_MIDTRANS => 'Transfer Bank (BCA)',
         ];
     }
 
@@ -121,7 +127,7 @@ class Payment extends Model
      */
     public function requiresProof(): bool
     {
-        return $this->payment_method !== self::METHOD_COD;
+        return ! in_array($this->payment_method, [self::METHOD_COD, self::METHOD_MIDTRANS]);
     }
 
     /**

@@ -11,7 +11,15 @@
       "Bash(php -l app/Filament/Widgets/StoreStatsWidget.php)",
       "Bash(php artisan:*)",
       "Bash(./vendor/bin/pint app/Filament/Widgets/ app/Filament/Pages/Dashboard.php app/Providers/Filament/AdminPanelProvider.php)",
-      "Bash(./vendor/bin/pint app/Filament/Widgets/OrderChartWidget.php app/Filament/Widgets/StoreStatsWidget.php)"
+      "Bash(./vendor/bin/pint app/Filament/Widgets/OrderChartWidget.php app/Filament/Widgets/StoreStatsWidget.php)",
+      "Bash(composer require:*)",
+      "Bash(php -l app/Http/Controllers/PaymentController.php)",
+      "Bash(php -l app/Http/Controllers/MidtransController.php)",
+      "Bash(php -l app/Models/Payment.php)",
+      "Bash(php -l config/midtrans.php)",
+      "Bash(php -l bootstrap/app.php)",
+      "Bash(./vendor/bin/pint app/Http/Controllers/PaymentController.php app/Http/Controllers/MidtransController.php app/Models/Payment.php routes/web.php bootstrap/app.php app/Filament/Resources/OrderResource.php)",
+      "Bash(./vendor/bin/pint app/Http/Controllers/PaymentController.php)"
     ]
   }
 }

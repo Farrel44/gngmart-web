@@ -1,155 +1,165 @@
-<x-app-layout>
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-            {{ __('Riwayat Pesanan') }}
-        </h2>
-    </x-slot>
+@extends('layouts.app')
 
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            {{-- Flash Messages --}}
-            @if (session('success'))
-                <div class="mb-4 p-4 bg-green-100 border border-green-400 text-green-700 rounded">
-                    {{ session('success') }}
+@section('content')
+
+@php
+    $statusColors = [
+        'pending' => 'bg-yellow-100 text-yellow-700',
+        'paid' => 'bg-blue-100 text-blue-700',
+        'processing' => 'bg-purple-100 text-purple-700',
+        'shipped' => 'bg-cyan-100 text-cyan-700',
+        'completed' => 'bg-green-100 text-green-700',
+        'cancelled' => 'bg-red-100 text-red-600',
+    ];
+    $paymentColors = [
+        'pending' => 'bg-yellow-100 text-yellow-700',
+        'success' => 'bg-green-100 text-green-700',
+        'failed' => 'bg-red-100 text-red-600',
+    ];
+@endphp
+
+<div class="bg-white min-h-screen">
+<div class="max-w-screen-xl mx-auto px-6 pt-24 pb-12">
+
+    {{-- Breadcrumb --}}
+    <nav class="mb-6 bg-white border border-gray-200 rounded-xl px-5 py-3 text-sm text-gray-500 flex items-center gap-2 flex-wrap shadow-sm">
+        <a href="{{ route('home') }}" class="hover:text-red-600 transition font-medium">Beranda</a>
+        <span class="w-1.5 h-1.5 rounded-full bg-green-500 inline-block"></span>
+        <span class="text-gray-800 font-semibold">Pesanan Saya</span>
+    </nav>
+
+    {{-- Page Title --}}
+    <h1 class="text-2xl font-bold text-gray-900 mb-6">Riwayat Pesanan</h1>
+
+    {{-- Flash Messages --}}
+    @if (session('success'))
+        <div class="mb-4 bg-green-50 border border-green-200 rounded-xl p-4">
+            <p class="text-sm text-green-700 font-medium">{{ session('success') }}</p>
+        </div>
+    @endif
+    @if (session('error'))
+        <div class="mb-4 bg-red-50 border border-red-200 rounded-xl p-4">
+            <p class="text-sm text-red-700 font-medium">{{ session('error') }}</p>
+        </div>
+    @endif
+    @if (session('info'))
+        <div class="mb-4 bg-blue-50 border border-blue-200 rounded-xl p-4">
+            <p class="text-sm text-blue-700 font-medium">{{ session('info') }}</p>
+        </div>
+    @endif
+
+    @if ($orders->isEmpty())
+        {{-- Empty State --}}
+        <div class="bg-white rounded-2xl border border-gray-200 shadow-sm text-center py-20">
+            <svg class="mx-auto h-16 w-16 text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                      d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+            </svg>
+            <h3 class="text-lg font-semibold text-gray-700">Belum ada pesanan</h3>
+            <p class="text-sm text-gray-500 mt-1">Ayo mulai belanja dan buat pesanan pertamamu!</p>
+            <a href="{{ route('products.index') }}"
+               class="mt-6 inline-block bg-red-600 text-white font-semibold px-6 py-2.5 rounded-xl hover:bg-red-700 transition">
+                Mulai Belanja
+            </a>
+        </div>
+    @else
+        {{-- Orders Table --}}
+        <div class="bg-white rounded-2xl border border-gray-200 shadow-sm">
+            <div class="p-6">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full">
+                        <thead>
+                            <tr class="border-b border-gray-100">
+                                <th class="px-4 pb-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wide">
+                                    No. Pesanan
+                                </th>
+                                <th class="px-4 pb-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wide">
+                                    Tanggal
+                                </th>
+                                <th class="px-4 pb-3 text-right text-xs font-medium text-gray-400 uppercase tracking-wide">
+                                    Total
+                                </th>
+                                <th class="px-4 pb-3 text-center text-xs font-medium text-gray-400 uppercase tracking-wide">
+                                    Status Pesanan
+                                </th>
+                                <th class="px-4 pb-3 text-center text-xs font-medium text-gray-400 uppercase tracking-wide">
+                                    Status Bayar
+                                </th>
+                                <th class="px-4 pb-3 text-center text-xs font-medium text-gray-400 uppercase tracking-wide">
+                                    Aksi
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-50">
+                            @foreach ($orders as $order)
+                                <tr class="hover:bg-gray-50/50 transition">
+                                    <td class="px-4 py-3">
+                                        <span class="text-sm font-medium text-gray-900">#{{ $order->id }}</span>
+                                    </td>
+                                    <td class="px-4 py-3">
+                                        <span class="text-sm text-gray-700">{{ $order->order_date->format('d M Y') }}</span>
+                                        <div class="text-xs text-gray-400 mt-0.5">{{ $order->order_date->format('H:i') }}</div>
+                                    </td>
+                                    <td class="px-4 py-3 text-right">
+                                        <span class="text-sm font-medium text-gray-800">Rp {{ number_format($order->total_price, 0, ',', '.') }}</span>
+                                    </td>
+                                    <td class="px-4 py-3 text-center">
+                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium {{ $statusColors[$order->order_status] ?? 'bg-gray-100 text-gray-800' }}">
+                                            {{ $order->getStatusLabel() }}
+                                        </span>
+                                    </td>
+                                    <td class="px-4 py-3 text-center">
+                                        @if ($order->payment)
+                                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium {{ $paymentColors[$order->payment->payment_status] ?? 'bg-gray-100 text-gray-800' }}">
+                                                {{ $order->payment->getStatusLabel() }}
+                                            </span>
+                                        @else
+                                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-500">
+                                                Belum Bayar
+                                            </span>
+                                        @endif
+                                    </td>
+                                    <td class="px-4 py-3 text-center">
+                                        <div class="flex items-center justify-center gap-2">
+                                            <a href="{{ route('orders.show', $order) }}"
+                                               class="inline-flex items-center px-3 py-1.5 rounded-lg text-sm font-medium text-red-600 bg-red-50 hover:bg-red-100 transition">
+                                                Detail
+                                            </a>
+
+                                            {{-- Tombol Bayar hanya muncul jika pending dan belum ada payment --}}
+                                            @if ($order->order_status === 'pending' && !$order->payment)
+                                                <a href="{{ route('payment.create', $order) }}"
+                                                   class="inline-flex items-center px-3 py-1.5 rounded-lg text-sm font-medium text-green-700 bg-green-50 hover:bg-green-100 transition">
+                                                    Bayar
+                                                </a>
+                                            @endif
+                                        </div>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
                 </div>
-            @endif
 
-            @if (session('error'))
-                <div class="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
-                    {{ session('error') }}
+                {{-- Pagination --}}
+                <div class="mt-6 pt-4 border-t border-gray-100">
+                    {{ $orders->links() }}
                 </div>
-            @endif
-
-            @if (session('info'))
-                <div class="mb-4 p-4 bg-blue-100 border border-blue-400 text-blue-700 rounded">
-                    {{ session('info') }}
-                </div>
-            @endif
-
-            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6 text-gray-900 dark:text-gray-100">
-                    @if ($orders->isEmpty())
-                        {{-- Empty State --}}
-                        <div class="text-center py-12">
-                            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                                      d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                            </svg>
-                            <h3 class="mt-4 text-lg font-medium text-gray-900 dark:text-gray-100">Belum ada pesanan</h3>
-                            <p class="mt-2 text-gray-500 dark:text-gray-400">Ayo mulai belanja dan buat pesanan pertamamu!</p>
-                            <a href="{{ route('products.index') }}" 
-                               class="mt-4 inline-block px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
-                                Mulai Belanja
-                            </a>
-                        </div>
-                    @else
-                        {{-- Orders Table --}}
-                        <div class="overflow-x-auto">
-                            <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                                <thead>
-                                    <tr>
-                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
-                                            No. Pesanan
-                                        </th>
-                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
-                                            Tanggal
-                                        </th>
-                                        <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
-                                            Total
-                                        </th>
-                                        <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
-                                            Status Pesanan
-                                        </th>
-                                        <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
-                                            Status Bayar
-                                        </th>
-                                        <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
-                                            Aksi
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
-                                    @foreach ($orders as $order)
-                                        <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                                            <td class="px-4 py-4">
-                                                <span class="font-medium">#{{ $order->id }}</span>
-                                            </td>
-                                            <td class="px-4 py-4 text-sm text-gray-600 dark:text-gray-400">
-                                                {{ $order->order_date->format('d M Y') }}
-                                                <div class="text-xs">{{ $order->order_date->format('H:i') }}</div>
-                                            </td>
-                                            <td class="px-4 py-4 text-right font-medium">
-                                                Rp {{ number_format($order->total_price, 0, ',', '.') }}
-                                            </td>
-                                            <td class="px-4 py-4 text-center">
-                                                @php
-                                                    $statusColors = [
-                                                        'pending' => 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300',
-                                                        'paid' => 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300',
-                                                        'processing' => 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300',
-                                                        'shipped' => 'bg-cyan-100 text-cyan-800 dark:bg-cyan-900/30 dark:text-cyan-300',
-                                                        'completed' => 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300',
-                                                        'cancelled' => 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300',
-                                                    ];
-                                                @endphp
-                                                <span class="px-2 py-1 text-xs font-medium rounded-full {{ $statusColors[$order->order_status] ?? 'bg-gray-100 text-gray-800' }}">
-                                                    {{ $order->getStatusLabel() }}
-                                                </span>
-                                            </td>
-                                            <td class="px-4 py-4 text-center">
-                                                @if ($order->payment)
-                                                    @php
-                                                        $paymentColors = [
-                                                            'pending' => 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300',
-                                                            'success' => 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300',
-                                                            'failed' => 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300',
-                                                        ];
-                                                    @endphp
-                                                    <span class="px-2 py-1 text-xs font-medium rounded-full {{ $paymentColors[$order->payment->payment_status] ?? 'bg-gray-100 text-gray-800' }}">
-                                                        {{ $order->payment->getStatusLabel() }}
-                                                    </span>
-                                                @else
-                                                    <span class="px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400">
-                                                        Belum Bayar
-                                                    </span>
-                                                @endif
-                                            </td>
-                                            <td class="px-4 py-4 text-center">
-                                                <div class="flex items-center justify-center gap-2">
-                                                    <a href="{{ route('orders.show', $order) }}" 
-                                                       class="text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 text-sm font-medium">
-                                                        Detail
-                                                    </a>
-                                                    
-                                                    {{-- Tombol Bayar hanya muncul jika pending dan belum ada payment --}}
-                                                    @if ($order->order_status === 'pending' && !$order->payment)
-                                                        <a href="{{ route('payment.create', $order) }}" 
-                                                           class="text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-300 text-sm font-medium">
-                                                            Bayar
-                                                        </a>
-                                                    @endif
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
-
-                        {{-- Pagination --}}
-                        <div class="mt-6">
-                            {{ $orders->links() }}
-                        </div>
-                    @endif
-                </div>
-            </div>
-
-            {{-- Back to Shopping Link --}}
-            <div class="mt-6 text-center">
-                <a href="{{ route('products.index') }}" class="text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300">
-                    &larr; Lanjut Belanja
-                </a>
             </div>
         </div>
+    @endif
+
+    {{-- Back to Shopping Link --}}
+    <div class="mt-8 text-center">
+        <a href="{{ route('products.index') }}" class="inline-flex items-center gap-1.5 text-sm font-medium text-gray-500 hover:text-red-600 transition">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+            </svg>
+            Lanjut Belanja
+        </a>
     </div>
-</x-app-layout>
+
+</div>
+</div>
+
+@endsection
