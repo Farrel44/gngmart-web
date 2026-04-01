@@ -115,10 +115,10 @@
         </svg>
         Keamanan Akun
     </h2>
-    <p class="text-sm text-gray-500 mb-4">Ubah password akun Anda secara berkala untuk menjaga keamanan.</p>
+    <p class="text-sm text-gray-500 mb-4">Ubah kata sandi akun Anda secara berkala untuk menjaga keamanan.</p>
     <button type="button"
             onclick="document.getElementById('password-modal').classList.remove('hidden')"
             class="px-4 py-2.5 border border-red-600 text-red-600 rounded-xl hover:bg-red-50 transition font-medium text-sm">
-        Ubah Password
+        Ubah Kata Sandi
     </button>
 </div>

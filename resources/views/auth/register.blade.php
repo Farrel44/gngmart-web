@@ -71,11 +71,11 @@
 
             <!-- Password dengan toggle show/hide -->
             <div class="mb-3" x-data="{ showPassword: false }">
-                <label class="block text-xs text-gray-500 mb-1">Password</label>
+                <label class="block text-xs text-gray-500 mb-1">Kata Sandi</label>
                 <div class="relative">
                     <input :type="showPassword ? 'text' : 'password'" name="password"
                            class="w-full bg-white border border-gray-300 rounded-lg px-4 py-2.5 pr-11 text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500 focus:outline-none"
-                           placeholder="Buat password"
+                           placeholder="Buat kata sandi"
                            required>
                     <button type="button"
                             @click="showPassword = !showPassword"
@@ -96,11 +96,11 @@
 
             <!-- Konfirmasi Password dengan toggle show/hide -->
             <div class="mb-5" x-data="{ showPassword: false }">
-                <label class="block text-xs text-gray-500 mb-1">Konfirmasi Password</label>
+                <label class="block text-xs text-gray-500 mb-1">Konfirmasi Kata Sandi</label>
                 <div class="relative">
                     <input :type="showPassword ? 'text' : 'password'" name="password_confirmation"
                            class="w-full bg-white border border-gray-300 rounded-lg px-4 py-2.5 pr-11 text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500 focus:outline-none"
-                           placeholder="Ulangi password"
+                           placeholder="Ulangi kata sandi"
                            required>
                     <button type="button"
                             @click="showPassword = !showPassword"

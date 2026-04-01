@@ -164,7 +164,7 @@
                                 <tr class="border-b border-gray-100">
                                     <th class="pb-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">Produk</th>
                                     <th class="pb-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wide">Harga</th>
-                                    <th class="pb-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wide">Qty</th>
+                                    <th class="pb-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wide">Jml</th>
                                     <th class="pb-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wide">Subtotal</th>
                                 </tr>
                             </thead>

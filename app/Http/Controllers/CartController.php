@@ -161,7 +161,7 @@ class CartController extends Controller
         $item->update(['quantity' => $validated['quantity']]);
 
         return redirect()->route('cart.index')
-            ->with('success', 'Quantity berhasil diupdate.');
+            ->with('success', 'Jumlah berhasil diperbarui.');
     }
 
     /**
@@ -232,7 +232,7 @@ class CartController extends Controller
         }
 
         return redirect()->route('cart.index')
-            ->with('success', 'Item berhasil dihapus dari keranjang.');
+            ->with('success', 'Produk berhasil dihapus dari keranjang.');
     }
 
     /**

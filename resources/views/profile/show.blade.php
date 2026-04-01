@@ -16,7 +16,7 @@
     @endif
     @if(session('status') === 'password-updated')
         <div class="mb-6 bg-green-50 border border-green-200 rounded-2xl p-4">
-            <p class="text-sm text-green-700 font-medium">Password berhasil diubah.</p>
+            <p class="text-sm text-green-700 font-medium">Kata sandi berhasil diubah.</p>
         </div>
     @endif
     @if($errors->any())
@@ -96,7 +96,7 @@
                 <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
                 </svg>
-                Ubah Password
+                Ubah Kata Sandi
             </h2>
         </div>
 
@@ -105,9 +105,9 @@
             @method('PUT')
 
             <div>
-                <label class="block text-sm font-semibold text-gray-700 mb-1.5">Password Saat Ini</label>
+                <label class="block text-sm font-semibold text-gray-700 mb-1.5">Kata Sandi Saat Ini</label>
                 <input type="password" name="current_password"
-                       placeholder="Masukkan password saat ini"
+                       placeholder="Masukkan kata sandi saat ini"
                        class="w-full px-4 py-2.5 border border-gray-300 rounded-xl text-sm text-gray-700 focus:ring-2 focus:ring-red-500 focus:border-red-500"
                        required>
                 @error('current_password')
@@ -116,7 +116,7 @@
             </div>
 
             <div>
-                <label class="block text-sm font-semibold text-gray-700 mb-1.5">Password Baru</label>
+                <label class="block text-sm font-semibold text-gray-700 mb-1.5">Kata Sandi Baru</label>
                 <input type="password" name="password"
                        placeholder="Minimal 8 karakter"
                        class="w-full px-4 py-2.5 border border-gray-300 rounded-xl text-sm text-gray-700 focus:ring-2 focus:ring-red-500 focus:border-red-500"
@@ -127,9 +127,9 @@
             </div>
 
             <div>
-                <label class="block text-sm font-semibold text-gray-700 mb-1.5">Konfirmasi Password Baru</label>
+                <label class="block text-sm font-semibold text-gray-700 mb-1.5">Konfirmasi Kata Sandi Baru</label>
                 <input type="password" name="password_confirmation"
-                       placeholder="Ulangi password baru"
+                       placeholder="Ulangi kata sandi baru"
                        class="w-full px-4 py-2.5 border border-gray-300 rounded-xl text-sm text-gray-700 focus:ring-2 focus:ring-red-500 focus:border-red-500"
                        required>
             </div>
@@ -142,7 +142,7 @@
                 </button>
                 <button type="submit"
                         class="flex-1 px-4 py-2.5 bg-red-600 text-white rounded-xl hover:bg-red-700 transition font-medium text-sm">
-                    Ubah Password
+                    Ubah Kata Sandi
                 </button>
             </div>
         </form>

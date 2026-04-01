@@ -46,12 +46,12 @@
             <!-- Password dengan toggle show/hide -->
             <div class="mb-3" x-data="{ showPassword: false }">
                 <label class="block text-xs text-gray-500 mb-1">
-                    Password
+                    Kata Sandi
                 </label>
                 <div class="relative">
                     <input :type="showPassword ? 'text' : 'password'" name="password"
                            class="w-full bg-white border border-gray-300 rounded-lg px-4 py-2.5 pr-11 text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500 focus:outline-none"
-                           placeholder="Masukkan password"
+                           placeholder="Masukkan kata sandi"
                            required>
 
                     {{-- Tombol eye toggle untuk show/hide password --}}
