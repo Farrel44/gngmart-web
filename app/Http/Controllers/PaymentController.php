@@ -165,6 +165,9 @@ class PaymentController extends Controller
                         'phone' => $lockedOrder->user->phone ?? '',
                     ],
                     'enabled_payments' => ['bca_va'],
+                    'callbacks' => [
+                        'finish' => route('orders.show', $lockedOrder->id),
+                    ],
                 ];
 
                 $snapToken = Snap::getSnapToken($params);

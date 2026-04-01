@@ -90,6 +90,7 @@ Route::middleware('auth')->group(function () {
         return redirect()->route('profile.show', ['tab' => 'transactions']);
     })->name('orders.index');
     Route::get('/orders/{order}', [OrderController::class, 'show'])->name('orders.show');
+    Route::post('/orders/{order}/check-status', [MidtransController::class, 'checkStatus'])->name('orders.checkStatus');
     Route::delete('/orders/{order}', [OrderController::class, 'cancel'])->name('orders.cancel');
 });
 

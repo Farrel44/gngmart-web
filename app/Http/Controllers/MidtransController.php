@@ -4,10 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Models\Order;
 use App\Models\Payment;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Midtrans\Config as MidtransConfig;
+use Midtrans\Transaction;
 
 /**
  * Controller untuk menangani notification/callback dari Midtrans.
@@ -140,6 +143,98 @@ class MidtransController extends Controller
                     $item->product->increment('stock', $item->quantity);
                 }
             }
+        }
+    }
+
+    /**
+     * Pull-based status check: query Midtrans API langsung.
+     *
+     * Digunakan sebagai fallback ketika webhook tidak bisa menjangkau
+     * server lokal (development tanpa ngrok). Frontend melakukan polling
+     * ke endpoint ini setelah user selesai bayar di Midtrans.
+     */
+    public function checkStatus(Order $order): JsonResponse
+    {
+        if ($order->user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        $payment = $order->payment;
+
+        if (! $payment || $payment->payment_method !== Payment::METHOD_MIDTRANS) {
+            return response()->json([
+                'order_status' => $order->order_status,
+                'payment_status' => $payment?->payment_status,
+            ]);
+        }
+
+        // Jika payment sudah final, langsung return tanpa query Midtrans
+        if (in_array($payment->payment_status, [Payment::STATUS_SUCCESS, Payment::STATUS_FAILED])) {
+            return response()->json([
+                'order_status' => $order->order_status,
+                'payment_status' => $payment->payment_status,
+                'changed' => false,
+            ]);
+        }
+
+        // Query Midtrans API untuk status terkini
+        try {
+            MidtransConfig::$serverKey = config('midtrans.server_key');
+            MidtransConfig::$isProduction = config('midtrans.is_production');
+
+            $midtransStatus = Transaction::status($payment->midtrans_transaction_id);
+
+            Log::info('Midtrans status check', [
+                'order_id' => $order->id,
+                'midtrans_id' => $payment->midtrans_transaction_id,
+                'transaction_status' => $midtransStatus->transaction_status ?? null,
+            ]);
+
+            $transactionStatus = $midtransStatus->transaction_status ?? '';
+            $fraudStatus = $midtransStatus->fraud_status ?? 'accept';
+            $changed = false;
+
+            DB::transaction(function () use ($payment, $order, $transactionStatus, $fraudStatus, &$changed) {
+                $payment = Payment::lockForUpdate()->find($payment->id);
+                $order = Order::lockForUpdate()->find($order->id);
+
+                if (in_array($payment->payment_status, [Payment::STATUS_SUCCESS, Payment::STATUS_FAILED])) {
+                    return;
+                }
+
+                $oldStatus = $payment->payment_status;
+
+                match ($transactionStatus) {
+                    'capture' => $this->handleCapture($payment, $order, $fraudStatus),
+                    'settlement' => $this->handleSettlement($payment, $order),
+                    'pending' => $this->handlePending($payment),
+                    'deny', 'cancel', 'expire' => $this->handleFailure($payment, $order, $transactionStatus),
+                    default => null,
+                };
+
+                $changed = $payment->fresh()->payment_status !== $oldStatus;
+            });
+
+            $payment->refresh();
+            $order->refresh();
+
+            return response()->json([
+                'order_status' => $order->order_status,
+                'payment_status' => $payment->payment_status,
+                'changed' => $changed,
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Midtrans status check failed', [
+                'order_id' => $order->id,
+                'error' => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'order_status' => $order->order_status,
+                'payment_status' => $payment->payment_status,
+                'changed' => false,
+            ]);
         }
     }
 }

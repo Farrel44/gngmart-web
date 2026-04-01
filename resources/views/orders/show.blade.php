@@ -16,9 +16,13 @@
         'success' => 'bg-green-100 text-green-700',
         'failed' => 'bg-red-100 text-red-700',
     ];
+    $isMidtransPending = $order->payment?->payment_method === 'midtrans'
+        && $order->payment?->payment_status === 'pending';
 @endphp
 
-<div class="bg-white min-h-screen">
+<div class="bg-white min-h-screen"
+     x-data="orderStatusChecker()"
+     x-init="init()">
 <div class="max-w-screen-xl mx-auto px-6 pt-24 pb-12">
 
     {{-- Breadcrumb --}}
@@ -33,8 +37,9 @@
     {{-- Page Title + Status --}}
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
         <h1 class="text-2xl font-bold text-gray-900">Detail Pesanan #{{ $order->id }}</h1>
-        <span class="inline-flex self-start px-3 py-1 text-xs font-medium rounded-full {{ $statusColors[$order->order_status] ?? 'bg-gray-100 text-gray-800' }}">
-            {{ $order->getStatusLabel() }}
+        <span x-text="orderStatusLabel"
+              :class="orderStatusBadgeClass"
+              class="inline-flex self-start px-3 py-1 text-xs font-medium rounded-full">
         </span>
     </div>
 
@@ -55,49 +60,91 @@
         </div>
     @endif
 
-    {{-- Action Banners --}}
-    @if ($order->order_status === 'pending' && (!$order->payment || $order->payment->payment_status === 'failed'))
-        <div class="mb-6 bg-yellow-50 border border-yellow-200 rounded-xl p-4">
-            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                <div>
-                    @if ($order->payment?->payment_status === 'failed')
-                        <h4 class="text-sm font-semibold text-yellow-800">Pembayaran Gagal</h4>
-                        <p class="text-sm text-yellow-700 mt-0.5">Pembayaran sebelumnya gagal. Silakan coba lagi dengan metode yang sama atau berbeda.</p>
-                    @else
-                        <h4 class="text-sm font-semibold text-yellow-800">Menunggu Pembayaran</h4>
-                        <p class="text-sm text-yellow-700 mt-0.5">Silakan selesaikan pembayaran untuk memproses pesanan Anda.</p>
-                    @endif
-                </div>
-                <a href="{{ route('payment.create', $order) }}"
-                   class="inline-flex items-center justify-center px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-xl transition flex-shrink-0">
-                    {{ $order->payment?->payment_status === 'failed' ? 'Coba Lagi' : 'Bayar Sekarang' }}
-                </a>
+    {{-- Success banner (shown after payment confirmed via polling) --}}
+    <div x-show="paymentJustConfirmed" x-cloak
+         class="mb-6 bg-green-50 border border-green-200 rounded-xl p-4">
+        <div class="flex items-center gap-3">
+            <svg class="w-5 h-5 text-green-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <div>
+                <h4 class="text-sm font-semibold text-green-800">Pembayaran Berhasil!</h4>
+                <p class="text-sm text-green-700 mt-0.5">Pembayaran telah dikonfirmasi. Pesanan Anda akan segera diproses.</p>
             </div>
         </div>
-    @endif
+    </div>
 
-    @if ($order->payment && $order->payment->payment_status === 'pending')
-        <div class="mb-6 bg-blue-50 border border-blue-200 rounded-xl p-4">
-            @if ($order->payment->payment_method === 'midtrans')
-                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+    {{-- Action Banners —— controlled by Alpine to react to status changes --}}
+    {{-- Banner: Belum bayar / payment gagal --}}
+    <div x-show="orderStatus === 'pending' && (!paymentStatus || paymentStatus === 'failed')" x-cloak
+         class="mb-6 bg-yellow-50 border border-yellow-200 rounded-xl p-4">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div>
+                <template x-if="paymentStatus === 'failed'">
                     <div>
-                        <h4 class="text-sm font-semibold text-blue-800">Menunggu Pembayaran BCA VA</h4>
-                        <p class="text-sm text-blue-700 mt-0.5">Selesaikan pembayaran melalui BCA Virtual Account. Status akan otomatis terupdate.</p>
+                        <h4 class="text-sm font-semibold text-yellow-800">Pembayaran Gagal</h4>
+                        <p class="text-sm text-yellow-700 mt-0.5">Pembayaran sebelumnya gagal. Silakan coba lagi dengan metode yang sama atau berbeda.</p>
                     </div>
-                    @if ($order->payment->snap_token)
-                        <button id="continue-pay-btn"
-                                class="inline-flex items-center justify-center px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-xl transition flex-shrink-0"
-                                onclick="continueMidtransPayment()">
-                            Lanjutkan Pembayaran
-                        </button>
-                    @endif
-                </div>
-            @else
-                <h4 class="text-sm font-semibold text-blue-800">Menunggu Verifikasi</h4>
-                <p class="text-sm text-blue-700 mt-0.5">Pembayaran Anda sedang dalam proses verifikasi oleh admin. Silakan cek secara berkala.</p>
-            @endif
+                </template>
+                <template x-if="paymentStatus !== 'failed'">
+                    <div>
+                        <h4 class="text-sm font-semibold text-yellow-800">Menunggu Pembayaran</h4>
+                        <p class="text-sm text-yellow-700 mt-0.5">Silakan selesaikan pembayaran untuk memproses pesanan Anda.</p>
+                    </div>
+                </template>
+            </div>
+            <a href="{{ route('payment.create', $order) }}"
+               class="inline-flex items-center justify-center px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-xl transition flex-shrink-0">
+                <span x-text="paymentStatus === 'failed' ? 'Coba Lagi' : 'Bayar Sekarang'"></span>
+            </a>
         </div>
-    @endif
+    </div>
+
+    {{-- Banner: Midtrans pending --}}
+    <div x-show="paymentStatus === 'pending' && paymentMethod === 'midtrans'" x-cloak
+         class="mb-6 bg-blue-50 border border-blue-200 rounded-xl p-4">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div>
+                <h4 class="text-sm font-semibold text-blue-800">Menunggu Pembayaran BCA VA</h4>
+                <p class="text-sm text-blue-700 mt-0.5">Selesaikan pembayaran melalui BCA Virtual Account. Status akan otomatis terupdate.</p>
+                <p x-show="polling" class="text-xs text-blue-600 mt-1 flex items-center gap-1">
+                    <svg class="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                    </svg>
+                    Mengecek status pembayaran...
+                </p>
+            </div>
+            <div class="flex items-center gap-2 flex-shrink-0">
+                @if ($order->payment?->snap_token)
+                    <button id="continue-pay-btn"
+                            class="inline-flex items-center justify-center px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-xl transition"
+                            onclick="continueMidtransPayment()">
+                        Lanjutkan Pembayaran
+                    </button>
+                @endif
+                <button @click="manualCheck()"
+                        :disabled="checking"
+                        class="inline-flex items-center justify-center px-4 py-2.5 border border-blue-300 text-blue-700 text-sm font-medium rounded-xl hover:bg-blue-100 transition disabled:opacity-50">
+                    <svg x-show="!checking" class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                    </svg>
+                    <svg x-show="checking" class="w-4 h-4 mr-1.5 animate-spin" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                    </svg>
+                    Cek Status
+                </button>
+            </div>
+        </div>
+    </div>
+
+    {{-- Banner: COD pending --}}
+    <div x-show="paymentStatus === 'pending' && paymentMethod === 'cod'" x-cloak
+         class="mb-6 bg-blue-50 border border-blue-200 rounded-xl p-4">
+        <h4 class="text-sm font-semibold text-blue-800">Menunggu Verifikasi</h4>
+        <p class="text-sm text-blue-700 mt-0.5">Pembayaran Anda sedang dalam proses verifikasi oleh admin. Silakan cek secara berkala.</p>
+    </div>
 
     {{-- Main Grid --}}
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -199,8 +246,9 @@
                         <div class="flex justify-between items-center">
                             <dt class="text-sm text-gray-500">Status</dt>
                             <dd>
-                                <span class="px-3 py-1 text-xs font-medium rounded-full {{ $statusColors[$order->order_status] ?? 'bg-gray-100 text-gray-800' }}">
-                                    {{ $order->getStatusLabel() }}
+                                <span x-text="orderStatusLabel"
+                                      :class="orderStatusBadgeClass"
+                                      class="px-3 py-1 text-xs font-medium rounded-full">
                                 </span>
                             </dd>
                         </div>
@@ -229,8 +277,9 @@
                             <div class="flex justify-between items-center">
                                 <dt class="text-sm text-gray-500">Status</dt>
                                 <dd>
-                                    <span class="px-3 py-1 text-xs font-medium rounded-full {{ $paymentColors[$order->payment->payment_status] ?? 'bg-gray-100 text-gray-800' }}">
-                                        {{ $order->payment->getStatusLabel() }}
+                                    <span x-text="paymentStatusLabel"
+                                          :class="paymentStatusBadgeClass"
+                                          class="px-3 py-1 text-xs font-medium rounded-full">
                                     </span>
                                 </dd>
                             </div>
@@ -261,15 +310,16 @@
                         @endif
 
                         {{-- Midtrans Continue Button (inside payment card) --}}
-                        @if ($order->payment->payment_method === 'midtrans' && $order->payment->payment_status === 'pending' && $order->payment->snap_token)
-                            <div class="mt-4 pt-4 border-t border-gray-100">
-                                <button id="continue-pay-btn-sidebar"
-                                        class="w-full bg-red-600 hover:bg-red-700 text-white text-sm font-semibold py-2.5 rounded-xl transition"
-                                        onclick="continueMidtransPayment()">
-                                    Lanjutkan Pembayaran
-                                </button>
-                            </div>
-                        @endif
+                        <div x-show="paymentStatus === 'pending' && paymentMethod === 'midtrans'" x-cloak>
+                            @if ($order->payment->snap_token)
+                                <div class="mt-4 pt-4 border-t border-gray-100">
+                                    <button class="w-full bg-red-600 hover:bg-red-700 text-white text-sm font-semibold py-2.5 rounded-xl transition"
+                                            onclick="continueMidtransPayment()">
+                                        Lanjutkan Pembayaran
+                                    </button>
+                                </div>
+                            @endif
+                        </div>
                     @else
                         <div class="text-center py-4">
                             <svg class="mx-auto h-10 w-10 text-gray-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -282,7 +332,7 @@
             </div>
 
             {{-- Cancel Button --}}
-            @if ($order->canBeCancelled())
+            <div x-show="orderStatus === 'pending'" x-cloak>
                 <form method="POST" action="{{ route('orders.cancel', $order) }}"
                       onsubmit="return confirm('Yakin ingin membatalkan pesanan ini? Tindakan ini tidak dapat dibatalkan.');">
                     @csrf
@@ -292,7 +342,7 @@
                         Batalkan Pesanan
                     </button>
                 </form>
-            @endif
+            </div>
         </div>
     </div>
 
@@ -309,24 +359,166 @@
 </div>
 </div>
 
-@if ($order->payment?->payment_method === 'midtrans' && $order->payment?->snap_token && $order->payment?->payment_status === 'pending')
+{{-- Midtrans Snap.js --}}
+@if ($order->payment?->payment_method === 'midtrans' && $order->payment?->snap_token)
     <script src="{{ config('midtrans.is_production') ? 'https://app.midtrans.com/snap/snap.js' : 'https://app.sandbox.midtrans.com/snap/snap.js' }}" data-client-key="{{ config('midtrans.client_key') }}"></script>
     <script>
         function continueMidtransPayment() {
             window.snap.pay('{{ $order->payment->snap_token }}', {
                 onSuccess: function(result) {
-                    window.location.reload();
+                    // Trigger immediate status check then reload
+                    if (window._orderChecker) window._orderChecker.manualCheck();
+                    setTimeout(() => window.location.reload(), 1500);
                 },
                 onPending: function(result) {
-                    window.location.reload();
+                    // Start polling — payment might settle shortly
+                    if (window._orderChecker) window._orderChecker.startPolling();
                 },
                 onError: function(result) {
                     alert('Pembayaran gagal. Silakan coba lagi.');
                 },
-                onClose: function() {}
+                onClose: function() {
+                    // User closed popup — start polling in case payment was completed
+                    if (window._orderChecker) window._orderChecker.startPolling();
+                }
             });
         }
     </script>
 @endif
+
+{{-- Alpine.js Order Status Checker --}}
+<script>
+    function orderStatusChecker() {
+        return {
+            orderStatus: '{{ $order->order_status }}',
+            paymentStatus: '{{ $order->payment?->payment_status ?? '' }}',
+            paymentMethod: '{{ $order->payment?->payment_method ?? '' }}',
+            polling: false,
+            checking: false,
+            pollInterval: null,
+            pollCount: 0,
+            maxPolls: 60,
+            paymentJustConfirmed: false,
+
+            // Status label maps
+            orderStatusLabels: {
+                pending: 'Menunggu Pembayaran',
+                paid: 'Sudah Dibayar',
+                processing: 'Diproses',
+                shipped: 'Dikirim',
+                completed: 'Selesai',
+                cancelled: 'Dibatalkan',
+            },
+            orderStatusClasses: {
+                pending: 'bg-yellow-100 text-yellow-700',
+                paid: 'bg-blue-100 text-blue-700',
+                processing: 'bg-purple-100 text-purple-700',
+                shipped: 'bg-cyan-100 text-cyan-700',
+                completed: 'bg-green-100 text-green-700',
+                cancelled: 'bg-red-100 text-red-700',
+            },
+            paymentStatusLabels: {
+                pending: 'Menunggu Verifikasi',
+                success: 'Berhasil',
+                failed: 'Gagal',
+            },
+            paymentStatusClasses: {
+                pending: 'bg-yellow-100 text-yellow-700',
+                success: 'bg-green-100 text-green-700',
+                failed: 'bg-red-100 text-red-700',
+            },
+
+            get orderStatusLabel() {
+                return this.orderStatusLabels[this.orderStatus] || this.orderStatus;
+            },
+            get orderStatusBadgeClass() {
+                return this.orderStatusClasses[this.orderStatus] || 'bg-gray-100 text-gray-800';
+            },
+            get paymentStatusLabel() {
+                return this.paymentStatusLabels[this.paymentStatus] || this.paymentStatus || '-';
+            },
+            get paymentStatusBadgeClass() {
+                return this.paymentStatusClasses[this.paymentStatus] || 'bg-gray-100 text-gray-800';
+            },
+
+            init() {
+                window._orderChecker = this;
+
+                // Auto-start polling if Midtrans payment is pending
+                if (this.paymentMethod === 'midtrans' && this.paymentStatus === 'pending') {
+                    this.startPolling();
+                }
+            },
+
+            startPolling() {
+                if (this.polling) return;
+                this.polling = true;
+                this.pollCount = 0;
+
+                this.pollInterval = setInterval(() => {
+                    this.pollCount++;
+                    if (this.pollCount > this.maxPolls) {
+                        this.stopPolling();
+                        return;
+                    }
+                    this.fetchStatus();
+                }, 5000); // Check every 5 seconds
+            },
+
+            stopPolling() {
+                this.polling = false;
+                if (this.pollInterval) {
+                    clearInterval(this.pollInterval);
+                    this.pollInterval = null;
+                }
+            },
+
+            async manualCheck() {
+                this.checking = true;
+                await this.fetchStatus();
+                this.checking = false;
+            },
+
+            async fetchStatus() {
+                try {
+                    const response = await fetch('{{ route("orders.checkStatus", $order) }}', {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Accept': 'application/json',
+                        },
+                    });
+
+                    if (!response.ok) return;
+
+                    const data = await response.json();
+
+                    const oldPaymentStatus = this.paymentStatus;
+
+                    this.orderStatus = data.order_status;
+                    this.paymentStatus = data.payment_status || '';
+
+                    // Payment just changed to success
+                    if (data.changed && data.payment_status === 'success') {
+                        this.paymentJustConfirmed = true;
+                        this.stopPolling();
+                    }
+
+                    // Stop polling if status is no longer pending
+                    if (this.paymentStatus !== 'pending') {
+                        this.stopPolling();
+                    }
+
+                } catch (e) {
+                    // Silently fail, will retry on next poll
+                }
+            },
+
+            destroy() {
+                this.stopPolling();
+            }
+        };
+    }
+</script>
 
 @endsection
