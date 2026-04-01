@@ -118,10 +118,10 @@ class OrderHistoryTest extends TestCase
 
         $this->actingAs($data['user']);
 
-        $response = $this->get(route('orders.index'));
+        $response = $this->get(route('profile.show', ['tab' => 'transactions']));
 
         $response->assertOk();
-        $response->assertViewIs('orders.index');
+        $response->assertViewIs('profile.show');
         $response->assertSee('Riwayat Pesanan');
     }
 
@@ -131,7 +131,7 @@ class OrderHistoryTest extends TestCase
 
         $this->actingAs($data['user']);
 
-        $response = $this->get(route('orders.index'));
+        $response = $this->get(route('profile.show', ['tab' => 'transactions']));
 
         // Should see all three orders
         $response->assertSee('Rp 100.000');
@@ -145,7 +145,7 @@ class OrderHistoryTest extends TestCase
 
         $this->actingAs($data['user']);
 
-        $response = $this->get(route('orders.index'));
+        $response = $this->get(route('profile.show', ['tab' => 'transactions']));
 
         $response->assertSee('Menunggu Pembayaran');
         $response->assertSee('Sudah Dibayar');
@@ -158,7 +158,7 @@ class OrderHistoryTest extends TestCase
 
         $this->actingAs($user);
 
-        $response = $this->get(route('orders.index'));
+        $response = $this->get(route('profile.show', ['tab' => 'transactions']));
 
         $response->assertSee('Belum ada pesanan');
         $response->assertSee('Mulai Belanja');
@@ -170,7 +170,7 @@ class OrderHistoryTest extends TestCase
 
         $this->actingAs($data['user']);
 
-        $response = $this->get(route('orders.index'));
+        $response = $this->get(route('profile.show', ['tab' => 'transactions']));
 
         // Most recent (pendingOrder) should appear first
         // This is implicit in the view order, we check response has orders in correct structure
@@ -273,7 +273,7 @@ class OrderHistoryTest extends TestCase
 
         $response = $this->delete(route('orders.cancel', $data['pendingOrder']));
 
-        $response->assertRedirect(route('orders.index'));
+        $response->assertRedirect(route('profile.show', ['tab' => 'transactions']));
         $response->assertSessionHas('success');
 
         // Verify order status changed
@@ -461,7 +461,7 @@ class OrderHistoryTest extends TestCase
         // otherUser shouldn't see data['user']'s orders
         $this->actingAs($otherUser);
 
-        $response = $this->get(route('orders.index'));
+        $response = $this->get(route('profile.show', ['tab' => 'transactions']));
 
         $response->assertOk();
         $response->assertDontSee('Rp 100.000');

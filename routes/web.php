@@ -83,10 +83,12 @@ Route::middleware('auth')->group(function () {
     |--------------------------------------------------------------------------
     | Order Routes
     |--------------------------------------------------------------------------
-    | Order history dan detail pesanan untuk user.
-    | Cancel hanya bisa dilakukan jika status masih pending.
+    | Order history terintegrasi di halaman profil (?tab=transactions).
+    | /orders redirect ke profil, detail & cancel tetap standalone.
     */
-    Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
+    Route::get('/orders', function () {
+        return redirect()->route('profile.show', ['tab' => 'transactions']);
+    })->name('orders.index');
     Route::get('/orders/{order}', [OrderController::class, 'show'])->name('orders.show');
     Route::delete('/orders/{order}', [OrderController::class, 'cancel'])->name('orders.cancel');
 });

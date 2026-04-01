@@ -44,9 +44,28 @@ class ProfileController extends Controller
      */
     public function show(Request $request): View
     {
-        return view('profile.show', [
+        $data = [
             'user' => $request->user(),
-        ]);
+        ];
+
+        // Load orders when on transactions tab
+        $tab = $request->get('tab', 'transactions');
+        if ($tab === 'transactions') {
+            $query = $request->user()
+                ->orders()
+                ->with(['payment', 'items.product.images'])
+                ->latest('order_date');
+
+            // Filter by status if provided
+            $status = $request->get('status');
+            if ($status && in_array($status, \App\Models\Order::getStatuses())) {
+                $query->where('order_status', $status);
+            }
+
+            $data['orders'] = $query->paginate(10);
+        }
+
+        return view('profile.show', $data);
     }
 
     /**
@@ -76,7 +95,7 @@ class ProfileController extends Controller
 
         $request->user()->save();
 
-        return Redirect::route('profile.show')->with('status', 'profile-updated');
+        return Redirect::route('profile.show', ['tab' => 'account'])->with('status', 'profile-updated');
     }
 
     /**
@@ -93,7 +112,7 @@ class ProfileController extends Controller
             'password' => Hash::make($request->password),
         ]);
 
-        return Redirect::route('profile.show')->with('status', 'password-updated');
+        return Redirect::route('profile.show', ['tab' => 'account'])->with('status', 'password-updated');
     }
 
     /**

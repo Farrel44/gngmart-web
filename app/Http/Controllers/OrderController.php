@@ -92,7 +92,7 @@ class OrderController extends Controller
         });
 
         return redirect()
-            ->route('orders.index')
+            ->route('profile.show', ['tab' => 'transactions'])
             ->with('success', 'Pesanan berhasil dibatalkan.');
     }
 }

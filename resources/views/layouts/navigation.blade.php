@@ -15,7 +15,7 @@
                 Keranjang
             </a>
 
-            <a href="{{ route('orders.index') }}" class="hover:text-gray-300 transition-colors">
+            <a href="{{ route('profile.show', ['tab' => 'transactions']) }}" class="hover:text-gray-300 transition-colors">
                 Pesanan
             </a>
 

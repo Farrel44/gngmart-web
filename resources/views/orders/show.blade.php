@@ -25,7 +25,7 @@
     <nav class="mb-6 bg-white border border-gray-200 rounded-xl px-5 py-3 text-sm text-gray-500 flex items-center gap-2 flex-wrap shadow-sm">
         <a href="{{ route('home') }}" class="hover:text-red-600 transition font-medium">Beranda</a>
         <span class="w-1.5 h-1.5 rounded-full bg-green-500 inline-block"></span>
-        <a href="{{ route('orders.index') }}" class="hover:text-red-600 transition font-medium">Pesanan Saya</a>
+        <a href="{{ route('profile.show', ['tab' => 'transactions']) }}" class="hover:text-red-600 transition font-medium">Pesanan Saya</a>
         <span class="w-1.5 h-1.5 rounded-full bg-green-500 inline-block"></span>
         <span class="text-gray-800 font-semibold">Pesanan #{{ $order->id }}</span>
     </nav>
@@ -298,7 +298,7 @@
 
     {{-- Back Link --}}
     <div class="mt-8 text-center">
-        <a href="{{ route('orders.index') }}" class="inline-flex items-center gap-1.5 text-sm font-medium text-gray-500 hover:text-red-600 transition">
+        <a href="{{ route('profile.show', ['tab' => 'transactions']) }}" class="inline-flex items-center gap-1.5 text-sm font-medium text-gray-500 hover:text-red-600 transition">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
             </svg>
