@@ -26,6 +26,10 @@ class PromoBannerResource extends Resource
 
     protected static ?string $navigationLabel = 'Promo Banner';
 
+    protected static ?string $modelLabel = 'Promo Banner';
+
+    protected static ?string $pluralModelLabel = 'Promo Banner';
+
     protected static ?int $navigationSort = 2;
 
     public static function form(Form $form): Form

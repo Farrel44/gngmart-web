@@ -13,7 +13,6 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Facades\Cache;
 
 /**
  * Resource Filament untuk mengelola pesanan dari sisi Admin.
@@ -34,15 +33,20 @@ class OrderResource extends Resource
 
     protected static ?string $navigationLabel = 'Pesanan';
 
+    protected static ?string $modelLabel = 'Pesanan';
+
+    protected static ?string $pluralModelLabel = 'Pesanan';
+
+    protected static ?string $slug = 'orders';
+
     protected static ?int $navigationSort = 1;
 
     /**
-     * Badge di navigasi menampilkan jumlah order pending untuk alert cepat.
+     * Badge di navigasi — realtime count tanpa cache agar selalu akurat.
      */
     public static function getNavigationBadge(): ?string
     {
-        $pendingCount = Cache::remember('pending_orders_count', 60, fn () => static::getModel()::where('order_status', Order::STATUS_PENDING)->count()
-        );
+        $pendingCount = static::getModel()::where('order_status', Order::STATUS_PENDING)->count();
 
         return $pendingCount > 0 ? (string) $pendingCount : null;
     }
@@ -124,7 +128,7 @@ class OrderResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            ->modifyQueryUsing(fn ($query) => $query->with(['user', 'payment']))
+            ->modifyQueryUsing(fn ($query) => $query->with(['user', 'payment', 'items']))
             ->columns([
                 Tables\Columns\TextColumn::make('id')
                     ->label('No. Pesanan')
@@ -188,12 +192,16 @@ class OrderResource extends Resource
 
                 Tables\Filters\SelectFilter::make('payment_status')
                     ->label('Status Bayar')
-                    ->options(array_merge(
-                        ['' => 'Belum Bayar'],
-                        Payment::getStatusLabels()
-                    ))
+                    ->options([
+                        'no_payment' => 'Belum Bayar',
+                        ...Payment::getStatusLabels(),
+                    ])
                     ->query(function (Builder $query, array $data) {
-                        if ($data['value'] === '') {
+                        if (blank($data['value'])) {
+                            return $query;
+                        }
+
+                        if ($data['value'] === 'no_payment') {
                             return $query->whereDoesntHave('payment');
                         }
 
@@ -202,9 +210,15 @@ class OrderResource extends Resource
                         });
                     }),
             ])
+            ->poll('15s')
+            ->emptyStateHeading('Belum ada pesanan')
+            ->emptyStateDescription('Pesanan baru dari pelanggan akan muncul di sini secara otomatis.')
+            ->emptyStateIcon('heroicon-o-shopping-bag')
             ->actions([
-                Tables\Actions\ViewAction::make(),
-                Tables\Actions\EditAction::make(),
+                Tables\Actions\ViewAction::make()
+                    ->label('Lihat'),
+                Tables\Actions\EditAction::make()
+                    ->label('Ubah'),
 
                 // Action khusus: Verifikasi Pembayaran
                 Tables\Actions\Action::make('verify_payment')
@@ -363,7 +377,7 @@ class OrderResource extends Resource
                                     ->label('Produk'),
 
                                 Infolists\Components\TextEntry::make('quantity')
-                                    ->label('Qty'),
+                                    ->label('Jumlah'),
 
                                 Infolists\Components\TextEntry::make('price')
                                     ->label('Harga')

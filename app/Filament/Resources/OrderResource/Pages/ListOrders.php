@@ -17,4 +17,9 @@ class ListOrders extends ListRecords
     {
         return [];
     }
+
+    public function getTitle(): string
+    {
+        return 'Daftar Pesanan';
+    }
 }

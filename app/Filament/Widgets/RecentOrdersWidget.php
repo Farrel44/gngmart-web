@@ -3,7 +3,6 @@
 namespace App\Filament\Widgets;
 
 use App\Models\Order;
-use Filament\Tables\Columns\BadgeColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Filament\Widgets\TableWidget as BaseWidget;
@@ -39,23 +38,18 @@ class RecentOrdersWidget extends BaseWidget
                     ->money('idr')
                     ->sortable(),
 
-                BadgeColumn::make('order_status')
+                TextColumn::make('order_status')
                     ->label('Status')
-                    ->colors([
-                        'warning' => 'pending',
-                        'info' => fn ($state) => in_array($state, ['paid', 'processing']),
-                        'success' => 'completed',
-                        'danger' => 'cancelled',
-                        'primary' => 'shipped',
-                    ])
-                    ->formatStateUsing(fn (string $state): string => match ($state) {
-                        'pending' => 'Tertunda',
-                        'paid' => 'Dibayar',
-                        'processing' => 'Diproses',
-                        'shipped' => 'Dikirim',
-                        'completed' => 'Selesai',
-                        'cancelled' => 'Dibatalkan',
-                        default => $state,
+                    ->badge()
+                    ->formatStateUsing(fn (string $state): string => Order::getStatusLabels()[$state] ?? $state)
+                    ->color(fn (string $state): string => match ($state) {
+                        Order::STATUS_PENDING => 'warning',
+                        Order::STATUS_PAID => 'info',
+                        Order::STATUS_PROCESSING => 'primary',
+                        Order::STATUS_SHIPPED => 'info',
+                        Order::STATUS_COMPLETED => 'success',
+                        Order::STATUS_CANCELLED => 'danger',
+                        default => 'gray',
                     }),
 
                 TextColumn::make('created_at')
@@ -65,6 +59,7 @@ class RecentOrdersWidget extends BaseWidget
             ])
             ->defaultSort('created_at', 'desc')
             ->paginated(false)
+            ->poll('30s')
             ->emptyStateHeading('Belum ada pesanan')
             ->emptyStateDescription('Pesanan dari pelanggan akan muncul di sini.')
             ->emptyStateIcon('heroicon-o-shopping-bag');

@@ -27,9 +27,6 @@ class AppServiceProvider extends ServiceProvider
          * Share categories ke semua views untuk footer
          * Memungkinkan footer mengakses $footerCategories
          * tanpa perlu pass dari setiap controller
-         *
-         * Guard: cek tabel ada sebelum query, agar tidak crash
-         * saat migrate pertama kali atau saat tabel belum dibuat.
          */
         try {
             $footerCategories = Schema::hasTable('categories')

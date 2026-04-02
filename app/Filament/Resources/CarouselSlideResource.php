@@ -27,6 +27,10 @@ class CarouselSlideResource extends Resource
 
     protected static ?string $navigationLabel = 'Carousel';
 
+    protected static ?string $modelLabel = 'Slide Carousel';
+
+    protected static ?string $pluralModelLabel = 'Slide Carousel';
+
     protected static ?int $navigationSort = 1;
 
     public static function form(Form $form): Form
