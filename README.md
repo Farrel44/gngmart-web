@@ -78,11 +78,6 @@ CREATE DATABASE gngmart_web CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 php artisan migrate --seed
 ```
 
-Seeder akan membuat:
-- 1 akun admin (`admin@gngmart.com` / `password`)
-- 1 akun user test (`test@example.com` / `password`)
-- Kategori, produk, carousel slides, dan promosi contoh
-
 ### 6. Storage link
 
 ```bash
