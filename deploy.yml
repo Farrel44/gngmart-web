@@ -1,0 +1,69 @@
+name: Deploy Production
+
+on:
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: production-deploy
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy to VPS via SSH password
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          password: ${{ secrets.VPS_PASSWORD }}
+          port: ${{ secrets.VPS_PORT }}
+          script: |
+            set -e
+
+            cd ${{ secrets.APP_DIR }}
+
+            echo "===> Enable safe directory"
+            git config --global --add safe.directory ${{ secrets.APP_DIR }}
+
+            echo "===> Reset local changes"
+            git fetch origin main
+            git reset --hard origin/main
+
+            echo "===> Load NVM"
+            export NVM_DIR="$HOME/.nvm"
+            if [ -s "$NVM_DIR/nvm.sh" ]; then
+              . "$NVM_DIR/nvm.sh"
+            else
+              echo "NVM not found at $NVM_DIR"
+              exit 1
+            fi
+
+            echo "===> Install and use Node.js 22"
+            nvm install 22
+            nvm use 22
+
+            echo "===> Show Node and NPM version"
+            node -v
+            npm -v
+
+            echo "===> Install PHP dependencies"
+            composer install --no-dev --optimize-autoloader --no-interaction
+
+            echo "===> Install Node dependencies"
+            npm ci
+
+            echo "===> Build assets"
+            npm run build
+
+            echo "===> Laravel maintenance tasks"
+            php artisan optimize:clear
+            php artisan filament:optimize
+            php artisan optimize
+
+            echo "===> Fix permissions"
+            chown -R www-data:www-data storage bootstrap/cache
+            chmod -R 775 storage bootstrap/cache
