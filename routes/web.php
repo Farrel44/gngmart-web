@@ -3,6 +3,7 @@
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CheckoutController;
+use App\Http\Controllers\HelpController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\MidtransController;
 use App\Http\Controllers\OrderController;
@@ -22,6 +23,9 @@ use Illuminate\Support\Facades\Route;
 
 // Landing page
 Route::get('/', [HomeController::class, 'index'])->name('home');
+
+// Help page - Cara Belanja
+Route::get('/bantuan', [HelpController::class, 'index'])->name('help.index');
 
 // Katalog produk: index (browse/search/filter) dan show (detail)
 Route::get('/products', [ProductController::class, 'index'])->name('products.index');

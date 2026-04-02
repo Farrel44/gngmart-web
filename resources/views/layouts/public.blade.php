@@ -22,6 +22,10 @@
     {{-- SEO Meta Tags - dapat di-override per halaman --}}
     {{ $meta ?? '' }}
 
+    <!-- Favicon - sama dengan dashboard admin -->
+    <link rel="icon" type="image/png" href="{{ asset('images/logo.png') }}">
+    <link rel="shortcut icon" type="image/png" href="{{ asset('images/logo.png') }}">
+
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700&display=swap" rel="stylesheet" />

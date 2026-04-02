@@ -7,6 +7,7 @@ use App\Models\Payment;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\View\View;
@@ -36,7 +37,7 @@ class PaymentController extends Controller
      */
     public function create(Order $order): View|RedirectResponse
     {
-        if ($order->user_id !== auth()->id()) {
+        if ($order->user_id !== Auth::id()) {
             abort(403, 'Akses ditolak.');
         }
 
@@ -82,7 +83,7 @@ class PaymentController extends Controller
      */
     public function store(Request $request, Order $order): RedirectResponse|JsonResponse
     {
-        if ($order->user_id !== auth()->id()) {
+        if ($order->user_id !== Auth::id()) {
             abort(403, 'Akses ditolak.');
         }
 

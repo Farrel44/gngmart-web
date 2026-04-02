@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>GnG Mart</title>
+    
+    <!-- Favicon - sama dengan dashboard admin -->
+    <link rel="icon" type="image/png" href="{{ asset('images/logo.png') }}">
+    <link rel="shortcut icon" type="image/png" href="{{ asset('images/logo.png') }}">
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
@@ -292,10 +296,7 @@
             <div>
                 <h4 class="text-sm font-semibold text-gray-800 mb-3">Bantuan</h4>
                 <ul class="space-y-2">
-                    <li><a href="#" class="text-sm text-gray-500 hover:text-red-600 transition">Cara Belanja</a></li>
-                    <li><a href="#" class="text-sm text-gray-500 hover:text-red-600 transition">Tentang GnG Mart</a></li>
-                    <li><a href="#" class="text-sm text-gray-500 hover:text-red-600 transition">Pengiriman</a></li>
-                    <li><a href="#" class="text-sm text-gray-500 hover:text-red-600 transition">FAQ</a></li>
+                    <li><a href="{{ route('help.index') }}" class="text-sm text-gray-500 hover:text-red-600 transition">Cara Belanja</a></li>
                 </ul>
             </div>
 
