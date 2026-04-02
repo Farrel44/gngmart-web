@@ -8,7 +8,7 @@
     $hasAnyDiscount = $discountPct > 0;
     $promo = $product->getBestActivePromotion();
     $firstImage = $product->images->first();
-    $imageUrls = $product->images->map(fn($img) => asset($img->image_url))->toArray();
+    $imageUrls = $product->images->map(fn($img) => asset('storage/' . $img->image_url))->toArray();
     $fallbackImage = asset('images/logo.png');
 @endphp
 
@@ -55,7 +55,7 @@
                                     :class="activeIndex === {{ $index }}
                                         ? 'border-red-600 shadow-sm'
                                         : 'border-gray-200 hover:border-gray-400'">
-                                <img src="{{ asset($image->image_url) }}"
+                                <img src="{{ asset('storage/' . $image->image_url) }}"
                                      alt="{{ $product->name }} - {{ $index + 1 }}"
                                      class="w-full h-full object-cover">
                             </button>
@@ -385,7 +385,7 @@
                 @foreach($relatedProducts as $related)
                     @php
                         $relImg = $related->images->first()
-                            ? asset($related->images->first()->image_url)
+                            ? asset('storage/' . $related->images->first()->image_url)
                             : $fallbackImage;
                         $relEffective = $related->getEffectivePrice();
                         $relDiscountPct = $related->getDiscountPercentage();

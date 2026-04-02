@@ -94,10 +94,23 @@ class DatabaseSeeder extends Seeder
                     'weight' => $weight,
                 ]);
 
-                // Setiap produk mendapat 1 gambar dari folder public/images/products
+                // Copy gambar seed ke storage/app/public/products/ agar konsisten
+                // dengan upload Filament yang juga pakai disk('public') dir 'products/'
+                $productsDir = storage_path('app/public/products');
+                if (! is_dir($productsDir)) {
+                    mkdir($productsDir, 0755, true);
+                }
+
+                $source = public_path('images/products/'.$image);
+                $destination = $productsDir.'/'.$image;
+
+                if (file_exists($source) && ! file_exists($destination)) {
+                    copy($source, $destination);
+                }
+
                 ProductImage::create([
                     'product_id' => $product->id,
-                    'image_url' => 'images/products/'.$image,
+                    'image_url' => 'products/'.$image,
                 ]);
             }
         }

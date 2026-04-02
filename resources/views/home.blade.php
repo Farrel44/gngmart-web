@@ -131,7 +131,7 @@
 
         @php
             $imageUrl = $product->images->first()
-                ? asset($product->images->first()->image_url)
+                ? asset('storage/' . $product->images->first()->image_url)
                 : asset('images/placeholder.png');
 
             $effectivePrice = $product->getEffectivePrice();

@@ -12,7 +12,7 @@
         'productName' => $item->product->name,
         'productSlug' => $item->product->slug,
         'imageUrl' => $item->product->images->first()
-            ? asset($item->product->images->first()->image_url)
+            ? asset('storage/' . $item->product->images->first()->image_url)
             : asset('images/placeholder.png'),
         'unitPrice' => $item->product->getEffectivePrice(),
         'originalPrice' => (float) $item->product->price,

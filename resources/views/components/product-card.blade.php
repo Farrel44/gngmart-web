@@ -12,7 +12,7 @@
 
 @php
     $imageUrl = $product->images->isNotEmpty()
-        ? asset($product->images->first()->image_url)
+        ? asset('storage/' . $product->images->first()->image_url)
         : asset('images/placeholder.png');
 
     $effectivePrice = $product->getEffectivePrice();

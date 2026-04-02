@@ -103,7 +103,7 @@
                         @foreach($items as $item)
                             @php
                                 $imageUrl = $item->product->images->first()
-                                    ? asset($item->product->images->first()->image_url)
+                                    ? asset('storage/' . $item->product->images->first()->image_url)
                                     : asset('images/placeholder.png');
                             @endphp
                             <div class="flex gap-4 py-4 first:pt-0 last:pb-0">

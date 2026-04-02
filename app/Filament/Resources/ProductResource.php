@@ -127,6 +127,7 @@ class ProductResource extends Resource
                 // Thumbnail gambar pertama sebagai preview cepat
                 Tables\Columns\ImageColumn::make('images.image_url')
                     ->label('Gambar')
+                    ->disk('public')
                     ->circular()
                     ->limit(1)
                     ->defaultImageUrl(url('/images/placeholder.png')),
