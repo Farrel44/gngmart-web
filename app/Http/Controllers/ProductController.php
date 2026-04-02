@@ -6,6 +6,7 @@ use App\Models\Category;
 use App\Models\Product;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\View\View;
 
 /**
@@ -51,8 +52,10 @@ class ProductController extends Controller
         // @phpstan-ignore-next-line - withQueryString() exists on concrete LengthAwarePaginator
         $products = $query->paginate(12)->withQueryString();
 
-        // Ambil semua kategori untuk dropdown filter
-        $categories = Category::orderBy('name', 'asc')->get();
+        // Ambil semua kategori untuk dropdown filter (di-cache karena jarang berubah)
+        $categories = Cache::remember('product_filter_categories', 600, function () {
+            return Category::orderBy('name', 'asc')->get();
+        });
 
         // Untuk menampilkan nama kategori yang sedang difilter
         /** @var Category|null $currentCategory */

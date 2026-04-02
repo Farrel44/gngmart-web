@@ -1,66 +1,245 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# GnG Mart
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Website e-commerce untuk penjualan produk secara online. Proyek sekolah oleh Kelompok 1, XII PPLG 3 — SMK Telkom Purwokerto (TP 2025/2026).
 
-## About Laravel
+## Tech Stack
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+| Layer       | Technology                           |
+|-------------|--------------------------------------|
+| Backend     | Laravel 11 (PHP 8.2+)               |
+| Frontend    | Blade, Alpine.js 3, Tailwind CSS 3  |
+| Admin Panel | Filament 3                           |
+| Build Tool  | Vite 6                               |
+| Database    | MySQL                                |
+| Payment     | Midtrans (Sandbox/Production)        |
+| Search      | Laravel Scout (database driver)      |
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Prerequisites
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+- PHP >= 8.2 dengan ekstensi: `bcmath`, `ctype`, `curl`, `dom`, `fileinfo`, `gd`, `intl`, `mbstring`, `openssl`, `pdo_mysql`, `xml`, `zip`
+- Composer 2.x
+- Node.js >= 18 dan npm
+- MySQL >= 8.0
+- Git
 
-## Learning Laravel
+## Installation
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+### 1. Clone repository
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+```bash
+git clone https://github.com/Farrel44/gngmart-web.git
+cd gngmart-web
+```
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+### 2. Install dependencies
 
-## Laravel Sponsors
+```bash
+composer install
+npm install
+```
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+### 3. Environment setup
 
-### Premium Partners
+```bash
+cp .env.example .env
+php artisan key:generate
+```
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+Edit `.env` dan sesuaikan konfigurasi database:
 
-## Contributing
+```env
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=gngmart_web
+DB_USERNAME=root
+DB_PASSWORD=
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+Untuk payment gateway Midtrans, isi key sandbox/production:
 
-## Code of Conduct
+```env
+MIDTRANS_SERVER_KEY=your-server-key
+MIDTRANS_CLIENT_KEY=your-client-key
+MIDTRANS_IS_PRODUCTION=false
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+### 4. Create database
 
-## Security Vulnerabilities
+Buat database MySQL sebelum menjalankan migration:
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+```sql
+CREATE DATABASE gngmart_web CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+```
+
+### 5. Run migration and seeder
+
+```bash
+php artisan migrate --seed
+```
+
+Seeder akan membuat:
+- 1 akun admin (`admin@gngmart.com` / `password`)
+- 1 akun user test (`test@example.com` / `password`)
+- Kategori, produk, carousel slides, dan promosi contoh
+
+### 6. Storage link
+
+```bash
+php artisan storage:link
+```
+
+### 7. Build frontend assets
+
+Development (dengan HMR):
+
+```bash
+npm run dev
+```
+
+Production:
+
+```bash
+npm run build
+```
+
+## Running the Application
+
+### Development (semua service sekaligus)
+
+```bash
+composer dev
+```
+
+Perintah ini menjalankan secara bersamaan:
+- Laravel server (`http://localhost:8000`)
+- Queue listener
+- Vite dev server (HMR)
+
+### Manual (masing-masing terminal)
+
+```bash
+# Terminal 1 — Laravel server
+php artisan serve
+
+# Terminal 2 — Queue worker
+php artisan queue:listen --tries=1
+
+# Terminal 3 — Vite
+npm run dev
+```
+
+## Access Points
+
+| URL                        | Keterangan           |
+|----------------------------|----------------------|
+| `http://localhost:8000`    | Halaman utama (customer) |
+| `http://localhost:8000/admin` | Admin panel (Filament)  |
+
+### Default Accounts
+
+| Role  | Email               | Password   |
+|-------|---------------------|------------|
+| Admin | `admin@gngmart.com` | `password` |
+| User  | `test@example.com`  | `password` |
+
+## Project Structure
+
+```
+app/
+  Filament/          # Admin panel resources, widgets, pages
+  Http/Controllers/  # Customer-facing controllers
+  Models/            # Eloquent models
+  Services/          # Business logic (PriceCalculationService)
+  Providers/         # Service providers
+  View/Components/   # Blade components
+config/              # Application configuration
+database/
+  factories/         # Model factories
+  migrations/        # Database migrations
+  seeders/           # Database seeders
+resources/views/     # Blade templates
+routes/
+  web.php            # Customer routes
+  auth.php           # Authentication routes
+tests/               # PHPUnit tests
+```
+
+## Architecture
+
+### Authentication
+
+Aplikasi menggunakan dua sistem auth terpisah:
+
+- **Customer** (`web` guard) — Model `User`, Laravel Breeze, session-based
+- **Admin** (`admin` guard) — Model `Admin`, Filament panel di `/admin`
+
+### Domain Models
+
+- **Product** — belongsTo Category, hasMany ProductImages. Scout searchable (full-text). Slug-based routing.
+- **Category** — hasMany Products. Slug-based routing.
+- **Cart / CartItem** — One cart per user.
+- **Order** — State machine: `pending` → `paid` → `processing` → `shipped` → `completed` (dan `cancelled`). HasMany OrderItems, hasOne Payment.
+- **Promotion** — Berlaku untuk Products dan/atau Categories via pivot tables. Range tanggal + flag aktif.
+- **Payment** — Mendukung COD dan Midtrans. Status: `pending`, `success`, `failed`.
+
+### Pricing
+
+`PriceCalculationService` menangani seluruh logika harga: deteksi promosi, resolusi konflik (diskon tertinggi menang), fallback ke `discount_price`, dan kalkulasi harga efektif.
+
+## Testing
+
+```bash
+# Jalankan semua test
+./vendor/bin/phpunit
+
+# Jalankan test spesifik
+./vendor/bin/phpunit --filter=TestClassName
+./vendor/bin/phpunit tests/Feature/CartTest.php
+```
+
+Testing menggunakan database terpisah (`gngmart_web_test`). Buat database tersebut sebelum menjalankan test:
+
+```sql
+CREATE DATABASE gngmart_web_test CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+```
+
+## Common Commands
+
+```bash
+# Format kode
+php artisan pint
+
+# Sync search index
+php artisan scout:sync
+
+# Clear cache
+php artisan config:clear
+php artisan cache:clear
+php artisan view:clear
+
+# Reset database
+php artisan migrate:fresh --seed
+```
+
+## Troubleshooting
+
+**Migration gagal dengan "table not found"**
+
+AppServiceProvider membutuhkan tabel `categories`. Jika tabel belum ada (fresh install), jalankan migration terlebih dahulu. Guard `Schema::hasTable()` sudah ditambahkan untuk menangani kasus ini.
+
+**Vite manifest not found**
+
+Jalankan `npm run build` atau `npm run dev` sebelum mengakses halaman.
+
+**Queue jobs tidak diproses**
+
+Pastikan queue listener berjalan: `php artisan queue:listen`. Atau gunakan `composer dev` yang menjalankan semua service.
+
+## Team
+
+Kelompok 1, XII PPLG 3 — SMK Telkom Purwokerto
 
 ## License
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+Proyek ini dibuat untuk keperluan pendidikan.

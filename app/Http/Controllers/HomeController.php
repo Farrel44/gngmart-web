@@ -6,6 +6,7 @@ use App\Models\CarouselSlide;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\PromoBanner;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\View\View;
 
 /**
@@ -19,25 +20,33 @@ class HomeController extends Controller
     /**
      * Tampilkan landing page dengan konten dinamis
      *
-     * Query dioptimasi dengan eager loading untuk menghindari N+1
-     * dan limit data agar halaman tetap ringan.
+     * Data di-cache 5 menit karena jarang berubah dan diakses setiap kunjungan.
+     * Cache otomatis di-flush saat admin mengubah data via Filament (lihat Observer).
      */
     public function index(): View
     {
-        $slides = CarouselSlide::active()->get();
+        $slides = Cache::remember('home_carousel_slides', 300, function () {
+            return CarouselSlide::active()->get();
+        });
 
-        $promoSlide = PromoBanner::active()->first();
+        $promoSlide = Cache::remember('home_promo_banner', 300, function () {
+            return PromoBanner::active()->first();
+        });
 
-        $categories = Category::withCount('products')
-            ->having('products_count', '>', 0)
-            ->orderBy('name')
-            ->get();
+        $categories = Cache::remember('home_categories', 300, function () {
+            return Category::withCount('products')
+                ->having('products_count', '>', 0)
+                ->orderBy('name')
+                ->get();
+        });
 
-        $featuredProducts = Product::with(['category', 'images', 'promotions', 'category.promotions'])
-            ->where('stock', '>', 0)
-            ->latest()
-            ->limit(12)
-            ->get();
+        $featuredProducts = Cache::remember('home_featured_products', 300, function () {
+            return Product::with(['category', 'images', 'promotions', 'category.promotions'])
+                ->where('stock', '>', 0)
+                ->latest()
+                ->limit(12)
+                ->get();
+        });
 
         return view('home', compact('slides', 'categories', 'featuredProducts', 'promoSlide'));
     }

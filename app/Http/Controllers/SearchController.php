@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Product;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\View\View;
 
 class SearchController extends Controller
@@ -15,12 +16,14 @@ class SearchController extends Controller
      */
     public function popular(): JsonResponse
     {
-        $names = Product::where('stock', '>', 0)
-            ->orderByDesc('id')
-            ->limit(8)
-            ->pluck('name')
-            ->unique()
-            ->values();
+        $names = Cache::remember('search_popular_products', 300, function () {
+            return Product::where('stock', '>', 0)
+                ->orderByDesc('id')
+                ->limit(8)
+                ->pluck('name')
+                ->unique()
+                ->values();
+        });
 
         return response()->json($names);
     }
