@@ -26,10 +26,33 @@
     $latestItemId = $cart->items->sortByDesc('updated_at')->first()?->id;
 @endphp
 
-<div class="max-w-7xl mx-auto px-4 py-8" x-data="cartPage()">
+<div class="max-w-7xl mx-auto px-4 py-8" x-data="cartPage()" x-init="$nextTick(() => { $el.querySelector('#cart-skeleton')?.remove() })">
+
+    {{-- Skeleton: tampil sebelum Alpine hydration, dihapus setelah init --}}
+    @if($cart->items->count() > 0)
+    <div id="cart-skeleton">
+        <div class="h-8 w-48 rounded skeleton-shimmer mb-6"></div>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="lg:col-span-2 space-y-4">
+                <x-skeleton.cart-item :count="min($cart->items->count(), 3)" />
+            </div>
+            <div class="lg:col-span-1">
+                <div class="bg-white rounded-2xl shadow-sm p-6 animate-pulse">
+                    <div class="h-6 w-40 rounded skeleton-shimmer mb-4"></div>
+                    <div class="space-y-3">
+                        <div class="h-4 w-full rounded skeleton-shimmer"></div>
+                        <div class="h-4 w-full rounded skeleton-shimmer"></div>
+                        <div class="h-5 w-2/3 rounded skeleton-shimmer"></div>
+                    </div>
+                    <div class="h-11 w-full rounded-xl skeleton-shimmer mt-4"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    @endif
 
     {{-- Header --}}
-    <h1 class="text-2xl font-bold text-gray-900 mb-6">Keranjang Belanja</h1>
+    <h1 class="text-2xl font-bold text-gray-900 mb-6" x-cloak>Keranjang Belanja</h1>
 
     {{-- Flash Messages --}}
     @if(session('success'))
@@ -119,11 +142,16 @@
                                x-model="item.checked"
                                class="mt-2 h-4 w-4 rounded border-gray-300 text-red-600 focus:ring-red-500 flex-shrink-0 cursor-pointer">
 
-                        {{-- Thumbnail --}}
+                        {{-- Thumbnail with skeleton loading --}}
                         <a :href="'/products/' + item.productSlug" class="flex-shrink-0">
-                            <img :src="item.imageUrl"
-                                 :alt="item.productName"
-                                 class="w-20 h-20 rounded-xl object-contain bg-gray-50">
+                            <div class="w-20 h-20 rounded-xl overflow-hidden relative bg-gray-100">
+                                <div class="absolute inset-0 skeleton-shimmer"></div>
+                                <img :src="item.imageUrl"
+                                     :alt="item.productName"
+                                     class="w-full h-full object-contain relative z-10 transition-opacity duration-300"
+                                     style="opacity:0"
+                                     onload="this.style.opacity='1';this.previousElementSibling.remove()">
+                            </div>
                         </a>
 
                         {{-- Info --}}
