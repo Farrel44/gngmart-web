@@ -220,63 +220,142 @@ class OrderResource extends Resource
                 Tables\Actions\EditAction::make()
                     ->label('Ubah'),
 
-                // Action khusus: Verifikasi Pembayaran
-                Tables\Actions\Action::make('verify_payment')
-                    ->label('Verifikasi Bayar')
-                    ->icon('heroicon-o-check-circle')
-                    ->color('success')
-                    ->requiresConfirmation()
-                    ->modalHeading('Verifikasi Pembayaran')
-                    ->modalDescription('Yakin ingin memverifikasi pembayaran ini? Status order akan otomatis berubah menjadi "Sudah Dibayar".')
-                    ->modalSubmitActionLabel('Ya, Verifikasi')
-                    // Tampilkan jika ada payment pending (non-midtrans, karena midtrans auto-verify via callback)
-                    ->visible(fn (Order $record): bool => $record->payment?->payment_status === Payment::STATUS_PENDING
-                        && $record->payment?->payment_method !== Payment::METHOD_MIDTRANS)
-                    ->action(function (Order $record): void {
-                        // Update payment status ke success
-                        $record->payment->update([
-                            'payment_status' => Payment::STATUS_SUCCESS,
-                        ]);
+                // Action Group: Workflow actions
+                Tables\Actions\ActionGroup::make([
+                    // Action 1: Verifikasi Pembayaran (PENDING → PROCESSING)
+                    Tables\Actions\Action::make('verify_payment_pending')
+                        ->label('Verifikasi Bayar')
+                        ->icon('heroicon-o-check-circle')
+                        ->color('success')
+                        ->requiresConfirmation()
+                        ->modalHeading('Verifikasi Pembayaran')
+                        ->modalDescription('Verifikasi pembayaran pembeli? Status order akan berubah menjadi "Diproses".')
+                        ->modalSubmitActionLabel('Ya, Verifikasi')
+                        ->visible(fn (Order $record): bool => 
+                            $record->order_status === Order::STATUS_PENDING
+                            && $record->payment?->payment_status === Payment::STATUS_PENDING
+                            && $record->payment?->payment_method !== Payment::METHOD_MIDTRANS)
+                        ->action(function (Order $record): void {
+                            $record->transitionTo(Order::STATUS_PROCESSING);
+                        })
+                        ->after(function () {
+                            \Filament\Notifications\Notification::make()
+                                ->title('Pembayaran Terverifikasi')
+                                ->body('Status pesanan berubah menjadi "Diproses".')
+                                ->success()
+                                ->send();
+                        }),
 
-                        // Transisi order status ke paid
-                        $record->transitionTo(Order::STATUS_PAID);
-                    }),
+                    // Action 2: Kirim Pesanan (PROCESSING → SHIPPED)
+                    Tables\Actions\Action::make('ship_order')
+                        ->label('Kirim')
+                        ->icon('heroicon-o-truck')
+                        ->color('info')
+                        ->requiresConfirmation()
+                        ->modalHeading('Kirim Pesanan')
+                        ->modalDescription('Yakin pesanan sudah dikirim?')
+                        ->visible(fn (Order $record): bool => $record->order_status === Order::STATUS_PROCESSING)
+                        ->action(fn (Order $record) => $record->transitionTo(Order::STATUS_SHIPPED))
+                        ->after(function () {
+                            \Filament\Notifications\Notification::make()
+                                ->title('Pesanan Dikirim')
+                                ->body('Status pesanan berubah menjadi "Dikirim".')
+                                ->success()
+                                ->send();
+                        }),
 
-                // Action khusus: Proses Pesanan
-                Tables\Actions\Action::make('process_order')
-                    ->label('Proses')
-                    ->icon('heroicon-o-cog')
-                    ->color('primary')
-                    ->requiresConfirmation()
-                    ->modalHeading('Proses Pesanan')
-                    ->modalDescription('Yakin ingin memproses pesanan ini? Pastikan pembayaran sudah diverifikasi.')
-                    ->visible(fn (Order $record): bool => $record->canTransitionTo(Order::STATUS_PROCESSING))
-                    ->action(fn (Order $record) => $record->transitionTo(Order::STATUS_PROCESSING)),
+                    // Action 3: Verifikasi Pembayaran Tunai (SHIPPED → PAID)
+                    Tables\Actions\Action::make('confirm_cod_payment')
+                        ->label('Verifikasi Bayar')
+                        ->icon('heroicon-o-banknotes')
+                        ->color('success')
+                        ->requiresConfirmation()
+                        ->modalHeading('Verifikasi Pembayaran Tunai')
+                        ->modalDescription('Konfirmasi pembayaran tunai sudah diterima dari pembeli?')
+                        ->modalSubmitActionLabel('Ya, Sudah Diterima')
+                        ->visible(fn (Order $record): bool => 
+                            $record->order_status === Order::STATUS_SHIPPED
+                            && $record->payment?->payment_status === Payment::STATUS_PENDING
+                            && $record->payment?->payment_method !== Payment::METHOD_MIDTRANS)
+                        ->action(function (Order $record): void {
+                            $record->payment->update(['payment_status' => Payment::STATUS_SUCCESS]);
+                            $record->transitionTo(Order::STATUS_PAID);
+                        })
+                        ->after(function () {
+                            \Filament\Notifications\Notification::make()
+                                ->title('Pembayaran Dikonfirmasi')
+                                ->body('Status pesanan berubah menjadi "Sudah Dibayar".')
+                                ->success()
+                                ->send();
+                        }),
 
-                // Action khusus: Kirim Pesanan
-                Tables\Actions\Action::make('ship_order')
-                    ->label('Kirim')
-                    ->icon('heroicon-o-truck')
-                    ->color('info')
-                    ->requiresConfirmation()
-                    ->modalHeading('Kirim Pesanan')
-                    ->modalDescription('Yakin pesanan sudah dikirim?')
-                    ->visible(fn (Order $record): bool => $record->canTransitionTo(Order::STATUS_SHIPPED))
-                    ->action(fn (Order $record) => $record->transitionTo(Order::STATUS_SHIPPED)),
+                    // Action 4: Pesanan Selesai (PAID → COMPLETED)
+                    Tables\Actions\Action::make('complete_order')
+                        ->label('Selesai')
+                        ->icon('heroicon-o-check')
+                        ->color('success')
+                        ->requiresConfirmation()
+                        ->modalHeading('Selesaikan Pesanan')
+                        ->modalDescription('Yakin pesanan sudah diterima oleh pembeli?')
+                        ->visible(fn (Order $record): bool => $record->order_status === Order::STATUS_PAID)
+                        ->action(fn (Order $record) => $record->transitionTo(Order::STATUS_COMPLETED))
+                        ->after(function () {
+                            \Filament\Notifications\Notification::make()
+                                ->title('Pesanan Selesai')
+                                ->body('Status pesanan berubah menjadi "Selesai".')
+                                ->success()
+                                ->send();
+                        }),
 
-                // Action khusus: Selesaikan Pesanan
-                Tables\Actions\Action::make('complete_order')
-                    ->label('Selesai')
-                    ->icon('heroicon-o-check')
-                    ->color('success')
-                    ->requiresConfirmation()
-                    ->modalHeading('Selesaikan Pesanan')
-                    ->modalDescription('Yakin pesanan sudah diterima oleh pembeli?')
-                    ->visible(fn (Order $record): bool => $record->canTransitionTo(Order::STATUS_COMPLETED))
-                    ->action(fn (Order $record) => $record->transitionTo(Order::STATUS_COMPLETED)),
+                    // Action: Hapus Pesanan (hanya untuk COMPLETED atau CANCELLED)
+                    Tables\Actions\DeleteAction::make()
+                        ->label('Hapus')
+                        ->icon('heroicon-o-trash')
+                        ->color('danger')
+                        ->requiresConfirmation()
+                        ->visible(fn (Order $record): bool => 
+                            in_array($record->order_status, [Order::STATUS_COMPLETED, Order::STATUS_CANCELLED]))
+                        ->modalHeading('Hapus Pesanan')
+                        ->modalDescription('Pesanan akan dihapus secara permanen. Tindakan ini tidak dapat dibatalkan.')
+                        ->modalSubmitActionLabel('Ya, Hapus'),
+                ])
+                    ->label('Aksi')
+                    ->icon('heroicon-o-ellipsis-horizontal'),
             ])
             ->bulkActions([
-                // Tidak ada bulk action untuk order demi keamanan
+                // Bulk Delete: Untuk menghapus multiple pesanan COMPLETED atau CANCELLED
+                Tables\Actions\BulkAction::make('bulk_delete')
+                    ->label('Hapus Pesanan')
+                    ->icon('heroicon-o-trash')
+                    ->color('danger')
+                    ->requiresConfirmation()
+                    ->modalHeading('Hapus Pesanan Terpilih')
+                    ->modalDescription('Semua pesanan terpilih akan dihapus secara permanen. Tindakan ini tidak dapat dibatalkan.')
+                    ->modalSubmitActionLabel('Ya, Hapus Semua')
+                    ->action(function (\Illuminate\Database\Eloquent\Collection $records) {
+                        // Hapus hanya pesanan dengan status COMPLETED atau CANCELLED
+                        $deletable = $records->filter(fn (Order $order) => 
+                            in_array($order->order_status, [Order::STATUS_COMPLETED, Order::STATUS_CANCELLED]));
+                        
+                        $deletable->each->delete();
+                        
+                        $deletedCount = $deletable->count();
+                        $skippedCount = $records->count() - $deletedCount;
+                        
+                        if ($deletedCount > 0) {
+                            \Filament\Notifications\Notification::make()
+                                ->title('Pesanan Dihapus')
+                                ->body($deletedCount . ' pesanan berhasil dihapus.' . ($skippedCount > 0 ? " $skippedCount pesanan tidak bisa dihapus karena masih aktif." : ''))
+                                ->success()
+                                ->send();
+                        } elseif ($skippedCount > 0) {
+                            \Filament\Notifications\Notification::make()
+                                ->title('Tidak Ada Pesanan yang Dihapus')
+                                ->body('Hanya pesanan dengan status "Selesai" atau "Dibatalkan" yang bisa dihapus.')
+                                ->warning()
+                                ->send();
+                        }
+                    }),
             ]);
     }
 

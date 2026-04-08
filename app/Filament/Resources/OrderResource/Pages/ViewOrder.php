@@ -17,47 +17,67 @@ class ViewOrder extends ViewRecord
         return [
             Actions\EditAction::make(),
 
-            // Verifikasi Pembayaran — hanya muncul jika payment pending
-            Actions\Action::make('verify_payment')
-                ->label('Verifikasi Pembayaran')
+            // Action 1: Verifikasi Pembayaran (PENDING → PROCESSING)
+            Actions\Action::make('verify_payment_pending')
+                ->label('Verifikasi Bayar')
                 ->icon('heroicon-o-check-circle')
                 ->color('success')
                 ->requiresConfirmation()
                 ->modalHeading('Verifikasi Pembayaran')
-                ->modalDescription('Yakin ingin memverifikasi pembayaran ini? Status order akan otomatis berubah menjadi "Sudah Dibayar".')
-                ->visible(fn (): bool => $this->record->payment?->payment_status === Payment::STATUS_PENDING)
+                ->modalDescription('Verifikasi pembayaran pembeli? Status order akan berubah menjadi "Diproses".')
+                ->modalSubmitActionLabel('Ya, Verifikasi')
+                ->visible(fn (): bool => 
+                    $this->record->order_status === Order::STATUS_PENDING
+                    && $this->record->payment?->payment_status === Payment::STATUS_PENDING
+                    && $this->record->payment?->payment_method !== Payment::METHOD_MIDTRANS)
                 ->action(function (): void {
-                    $this->record->payment->update([
-                        'payment_status' => Payment::STATUS_SUCCESS,
-                    ]);
-                    $this->record->transitionTo(Order::STATUS_PAID);
+                    // Hanya ubah order status ke PROCESSING, payment tetap PENDING (untuk COD)
+                    $this->record->transitionTo(Order::STATUS_PROCESSING);
                 }),
 
-            // Proses Pesanan
-            Actions\Action::make('process_order')
-                ->label('Proses Pesanan')
-                ->icon('heroicon-o-cog')
-                ->color('primary')
-                ->requiresConfirmation()
-                ->visible(fn (): bool => $this->record->canTransitionTo(Order::STATUS_PROCESSING))
-                ->action(fn () => $this->record->transitionTo(Order::STATUS_PROCESSING)),
-
-            // Kirim Pesanan
+            // Action 2: Kirim Pesanan (PROCESSING → SHIPPED)
             Actions\Action::make('ship_order')
-                ->label('Kirim Pesanan')
+                ->label('Kirim')
                 ->icon('heroicon-o-truck')
                 ->color('info')
                 ->requiresConfirmation()
-                ->visible(fn (): bool => $this->record->canTransitionTo(Order::STATUS_SHIPPED))
+                ->modalHeading('Kirim Pesanan')
+                ->modalDescription('Yakin pesanan sudah dikirim?')
+                ->visible(fn (): bool => $this->record->order_status === Order::STATUS_PROCESSING)
                 ->action(fn () => $this->record->transitionTo(Order::STATUS_SHIPPED)),
 
-            // Selesaikan Pesanan
+            // Action 3: Verifikasi Pembayaran Tunai (SHIPPED, payment PENDING → SUCCESS + SHIPPED → PAID)
+            Actions\Action::make('confirm_cod_payment')
+                ->label('Verifikasi Bayar')
+                ->icon('heroicon-o-banknotes')
+                ->color('success')
+                ->requiresConfirmation()
+                ->modalHeading('Verifikasi Pembayaran Tunai')
+                ->modalDescription('Konfirmasi pembayaran tunai sudah diterima dari pembeli?')
+                ->modalSubmitActionLabel('Ya, Sudah Diterima')
+                ->visible(fn (): bool => 
+                    $this->record->order_status === Order::STATUS_SHIPPED
+                    && $this->record->payment?->payment_status === Payment::STATUS_PENDING
+                    && $this->record->payment?->payment_method !== Payment::METHOD_MIDTRANS)
+                ->action(function (): void {
+                    // Update payment status ke success
+                    $this->record->payment->update([
+                        'payment_status' => Payment::STATUS_SUCCESS,
+                    ]);
+                    // Transition order dari SHIPPED ke PAID
+                    $this->record->transitionTo(Order::STATUS_PAID);
+                }),
+
+            // Action 4: Pesanan Selesai (PAID → COMPLETED)
             Actions\Action::make('complete_order')
-                ->label('Pesanan Selesai')
+                ->label('Selesai')
                 ->icon('heroicon-o-check')
                 ->color('success')
                 ->requiresConfirmation()
-                ->visible(fn (): bool => $this->record->canTransitionTo(Order::STATUS_COMPLETED))
+                ->modalHeading('Selesaikan Pesanan')
+                ->modalDescription('Yakin pesanan sudah diterima oleh pembeli?')
+                ->visible(fn (): bool => 
+                    $this->record->order_status === Order::STATUS_PAID)
                 ->action(fn () => $this->record->transitionTo(Order::STATUS_COMPLETED)),
         ];
     }

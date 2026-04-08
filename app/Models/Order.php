@@ -32,16 +32,18 @@ class Order extends Model
      * State machine: daftar transisi status yang diizinkan.
      * Format: 'from_status' => ['allowed_to_status_1', 'allowed_to_status_2']
      *
-     * Rules:
-     * - Status tidak boleh mundur (misal: shipped → pending)
-     * - Cancelled adalah final state, tidak bisa berubah lagi
-     * - Cancel hanya bisa dari pending
+     * Workflow COD (Cash On Delivery):
+     * 1. PENDING (menunggu verifikasi pembayaran pembeli)
+     * 2. PROCESSING (verifikasi diterima, mulai proses barang)
+     * 3. SHIPPED (barang dikirim ke pembeli)
+     * 4. PAID (konfirmasi pembayaran tunai diterima dari pembeli)
+     * 5. COMPLETED (pembeli konfirmasi sudah terima)
      */
     private const ALLOWED_TRANSITIONS = [
-        self::STATUS_PENDING => [self::STATUS_PAID, self::STATUS_CANCELLED],
-        self::STATUS_PAID => [self::STATUS_PROCESSING],
+        self::STATUS_PENDING => [self::STATUS_PROCESSING, self::STATUS_CANCELLED],
         self::STATUS_PROCESSING => [self::STATUS_SHIPPED],
-        self::STATUS_SHIPPED => [self::STATUS_COMPLETED],
+        self::STATUS_SHIPPED => [self::STATUS_PAID],
+        self::STATUS_PAID => [self::STATUS_COMPLETED],
         self::STATUS_COMPLETED => [], // Final state
         self::STATUS_CANCELLED => [], // Final state
     ];
@@ -141,6 +143,13 @@ class Order extends Model
         $this->order_status = $newStatus;
         $this->save();
 
+        // Jika order dibatalkan, update payment status ke failed
+        if ($newStatus === self::STATUS_CANCELLED && $this->payment) {
+            $this->payment->update([
+                'payment_status' => \App\Models\Payment::STATUS_FAILED,
+            ]);
+        }
+
         return true;
     }
 
@@ -212,5 +221,22 @@ class Order extends Model
     public function payment(): HasOne
     {
         return $this->hasOne(Payment::class);
+    }
+
+    // ========================================
+    // Model Events
+    // ========================================
+
+    /**
+     * Saat order akan dihapus, hapus juga order items dan payment-nya
+     */
+    protected static function booted(): void
+    {
+        static::deleting(function (Order $order) {
+            // Hapus semua order items
+            $order->items()->delete();
+            // Hapus payment
+            $order->payment?->delete();
+        });
     }
 }
