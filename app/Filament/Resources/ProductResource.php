@@ -125,12 +125,16 @@ class ProductResource extends Resource
                     ->sortable(),
 
                 // Thumbnail gambar pertama sebagai preview cepat
-                Tables\Columns\ImageColumn::make('images.image_url')
+                Tables\Columns\TextColumn::make('product_image')
                     ->label('Gambar')
-                    ->disk('public')
-                    ->circular()
-                    ->limit(1)
-                    ->defaultImageUrl(url('/images/placeholder.png')),
+                    ->getStateUsing(function ($record) {
+                        $firstImage = $record->images->first();
+                        if ($firstImage) {
+                            return '<img src="' . asset('storage/' . $firstImage->image_url) . '" class="h-10 w-10 rounded-full object-cover" />';
+                        }
+                        return '<img src="' . asset('/images/placeholder.png') . '" class="h-10 w-10 rounded-full object-cover" />';
+                    })
+                    ->html(),
 
                 Tables\Columns\TextColumn::make('name')
                     ->label('Nama Produk')

@@ -106,10 +106,10 @@ class PromoBannerResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\ImageColumn::make('image_path')
+                Tables\Columns\TextColumn::make('image_path')
                     ->label('Gambar')
-                    ->disk('public')
-                    ->height(60),
+                    ->formatStateUsing(fn ($state) => $state ? '<img src="' . asset('storage/' . $state) . '" class="h-16 w-auto rounded object-cover" />' : 'No image')
+                    ->html(),
 
                 Tables\Columns\TextColumn::make('title')
                     ->label('Judul')
