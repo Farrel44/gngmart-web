@@ -72,15 +72,9 @@
                              class="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-lg border border-gray-100 z-50 overflow-hidden"
                              style="display: none;">
 
-                            {{-- Loading state --}}
+                            {{-- Loading state: skeleton suggestion rows --}}
                             <template x-if="loading">
-                                <div class="px-4 py-6 text-center text-sm text-gray-400">
-                                    <svg class="w-5 h-5 mx-auto mb-2 animate-spin text-gray-300" fill="none" viewBox="0 0 24 24">
-                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-                                    </svg>
-                                    Mencari...
-                                </div>
+                                <x-skeleton.search-item :count="5" />
                             </template>
 
                             {{-- Popular / Recommendation header --}}

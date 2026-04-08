@@ -79,9 +79,10 @@
 
                 {{-- Product image --}}
                 <div class="relative mb-3">
-                    <img src="{{ $imageUrl }}"
-                         alt="{{ $product->name }}"
-                         class="h-32 w-full object-contain rounded-xl bg-gray-50">
+                    <x-lazy-image :src="$imageUrl"
+                                  :alt="$product->name"
+                                  class="h-32 w-full rounded-xl"
+                                  img-class="w-full h-full object-contain" />
 
                     {{-- Discount badge --}}
                     @if($hasDiscount)

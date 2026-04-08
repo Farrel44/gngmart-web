@@ -1,31 +1,50 @@
-<x-guest-layout>
-    <div class="mb-4 text-sm text-gray-600 dark:text-gray-400">
-        {{ __('Terima kasih telah mendaftar! Sebelum memulai, silakan verifikasi alamat email Anda dengan mengklik link yang baru saja kami kirim. Jika Anda tidak menerima email tersebut, kami akan dengan senang hati mengirimkan ulang.') }}
-    </div>
+@extends('layouts.app')
 
-    @if (session('status') == 'verification-link-sent')
-        <div class="mb-4 font-medium text-sm text-green-600 dark:text-green-400">
-            {{ __('Link verifikasi baru telah dikirim ke alamat email yang Anda daftarkan.') }}
-        </div>
-    @endif
+@section('content')
 
-    <div class="mt-4 flex items-center justify-between">
-        <form method="POST" action="{{ route('verification.send') }}">
-            @csrf
+<div class="min-h-[60vh] flex items-center justify-center bg-white">
 
-            <div>
-                <x-primary-button>
-                    {{ __('Kirim Ulang Email Verifikasi') }}
-                </x-primary-button>
+    <div class="w-full max-w-md bg-white rounded-2xl shadow-sm border border-gray-100 px-8 py-7">
+
+        <h2 class="text-center text-xl font-semibold mb-1">
+            Verifikasi Email
+        </h2>
+
+        <p class="text-center text-sm text-gray-500 mb-5">
+            Terima kasih telah mendaftar! Sebelum memulai, silakan verifikasi alamat email Anda
+            dengan mengklik link yang baru saja kami kirim. Jika Anda tidak menerima email tersebut,
+            kami akan mengirimkan ulang.
+        </p>
+
+        @if (session('status') == 'verification-link-sent')
+            <div class="bg-green-50 border border-green-200 rounded-lg p-3 mb-4">
+                <p class="text-green-700 text-sm flex items-center gap-1.5">
+                    <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                    Link verifikasi baru telah dikirim ke alamat email Anda.
+                </p>
             </div>
-        </form>
+        @endif
 
-        <form method="POST" action="{{ route('logout') }}">
-            @csrf
+        <div class="flex items-center justify-between gap-3">
+            <form method="POST" action="{{ route('verification.send') }}">
+                @csrf
+                <button type="submit"
+                        class="bg-red-600 text-white px-5 py-2.5 rounded-lg font-semibold hover:bg-red-700 transition text-sm">
+                    Kirim Ulang Email
+                </button>
+            </form>
 
-            <button type="submit" class="underline text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800">
-                {{ __('Keluar') }}
-            </button>
-        </form>
+            <form method="POST" action="{{ route('logout') }}">
+                @csrf
+                <button type="submit"
+                        class="text-sm text-gray-500 hover:text-gray-700 underline transition">
+                    Keluar
+                </button>
+            </form>
+        </div>
+
     </div>
-</x-guest-layout>
+
+</div>
+
+@endsection

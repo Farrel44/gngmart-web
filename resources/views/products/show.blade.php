@@ -40,10 +40,14 @@
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
         <div class="lg:col-span-4">
                 {{-- Main product image with soft shadow --}}
-                <div class="bg-white rounded-xl overflow-hidden aspect-square flex items-center justify-center">
+                <div class="bg-white rounded-xl overflow-hidden aspect-square flex items-center justify-center relative">
+                    <div class="absolute inset-0 skeleton-shimmer" x-ref="mainImgSkeleton"></div>
                     <img :src="currentImage"
                          alt="{{ $product->name }}"
-                         class="w-full h-full object-contain p-2">
+                         class="w-full h-full object-contain p-2 relative z-10 transition-opacity duration-300"
+                         :style="imgLoaded ? 'opacity:1' : 'opacity:0'"
+                         @load="imgLoaded = true; $refs.mainImgSkeleton?.remove()"
+                         x-effect="if(currentImage) imgLoaded = false">
                 </div>
 
                 {{-- Thumbnail strip --}}
@@ -51,13 +55,17 @@
                     <div class="flex gap-3 mt-4 justify-center">
                         @foreach($product->images as $index => $image)
                             <button @click="selectImage({{ $index }})"
-                                    class="flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 transition-all"
+                                    class="flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 transition-all relative"
                                     :class="activeIndex === {{ $index }}
                                         ? 'border-red-600 shadow-sm'
                                         : 'border-gray-200 hover:border-gray-400'">
+                                <div class="absolute inset-0 skeleton-shimmer"></div>
                                 <img src="{{ asset('storage/' . $image->image_url) }}"
                                      alt="{{ $product->name }} - {{ $index + 1 }}"
-                                     class="w-full h-full object-cover">
+                                     class="w-full h-full object-cover relative z-10 transition-opacity duration-200"
+                                     style="opacity:0"
+                                     loading="lazy"
+                                     onload="this.style.opacity='1';this.previousElementSibling.remove()">
                             </button>
                         @endforeach
                     </div>
@@ -256,8 +264,15 @@
                                 {{-- Masukkan Keranjang: AJAX POST, tampilkan popup --}}
                                 <button type="button"
                                         @click="addToCart()"
-                                        class="w-full border-2 border-red-600 text-red-600 font-semibold py-2.5 rounded-xl hover:bg-red-50 active:bg-red-100 transition text-sm">
-                                    Masukkan Keranjang
+                                        :disabled="addingToCart"
+                                        class="w-full border-2 border-red-600 text-red-600 font-semibold py-2.5 rounded-xl hover:bg-red-50 active:bg-red-100 transition text-sm disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+                                    <template x-if="addingToCart">
+                                        <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                                        </svg>
+                                    </template>
+                                    <span x-text="addingToCart ? 'Menambahkan...' : 'Masukkan Keranjang'"></span>
                                 </button>
                             @else
                                 {{-- Guest: redirect ke login karena fitur ini butuh autentikasi --}}
@@ -397,9 +412,10 @@
                        class="bg-white rounded-2xl shadow-sm hover:shadow-md transition p-4 block group border border-gray-100">
 
                         <div class="relative">
-                            <img src="{{ $relImg }}"
-                                 alt="{{ $related->name }}"
-                                 class="h-36 w-full object-cover rounded-xl mb-3 bg-gray-50">
+                            <x-lazy-image :src="$relImg"
+                                          :alt="$related->name"
+                                          class="h-36 w-full rounded-xl mb-3"
+                                          img-class="w-full h-full object-cover" />
 
                             @if($relHasDiscount)
                                 <span class="absolute top-2 left-2 bg-red-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
@@ -461,6 +477,8 @@
             unitPrice: config.price,
             activeIndex: 0,
             showFullDesc: false,
+            imgLoaded: false,
+            addingToCart: false,
 
             // Popup state
             showCartPopup: false,
@@ -477,6 +495,8 @@
             },
 
             async addToCart() {
+                if (this.addingToCart) return;
+                this.addingToCart = true;
                 try {
                     const res = await fetch('{{ route("cart.add") }}', {
                         method: 'POST',
@@ -514,6 +534,8 @@
                     }
                 } catch (e) {
                     console.error('Add to cart failed:', e);
+                } finally {
+                    this.addingToCart = false;
                 }
             },
 

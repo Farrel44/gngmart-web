@@ -107,9 +107,15 @@
                                     : asset('images/placeholder.png');
                             @endphp
                             <div class="flex gap-4 py-4 first:pt-0 last:pb-0">
-                                <img src="{{ $imageUrl }}"
-                                     alt="{{ $item->product->name }}"
-                                     class="w-16 h-16 rounded-xl object-contain bg-gray-50 flex-shrink-0">
+                                <div class="w-16 h-16 rounded-xl overflow-hidden relative bg-gray-100 flex-shrink-0">
+                                    <div class="absolute inset-0 skeleton-shimmer"></div>
+                                    <img src="{{ $imageUrl }}"
+                                         alt="{{ $item->product->name }}"
+                                         class="w-full h-full object-contain relative z-10 transition-opacity duration-300"
+                                         style="opacity:0"
+                                         loading="lazy"
+                                         onload="this.style.opacity='1';this.previousElementSibling.remove()">
+                                </div>
                                 <div class="flex-1 min-w-0">
                                     <p class="text-sm font-semibold text-gray-900 line-clamp-2">
                                         {{ $item->product->name }}

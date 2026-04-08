@@ -27,9 +27,20 @@ class LoginRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'email' => ['required', 'string', 'email'],
+            'email' => ['required', 'string'],
             'password' => ['required', 'string'],
         ];
+    }
+
+    /**
+     * Tentukan apakah input login berupa email atau nomor handphone.
+     */
+    protected function isPhone(): bool
+    {
+        $input = $this->input('email');
+
+        // Dianggap nomor HP jika hanya berisi angka, +, -, spasi
+        return (bool) preg_match('/^[\d\s\+\-]+$/', $input);
     }
 
     /**
@@ -41,7 +52,13 @@ class LoginRequest extends FormRequest
     {
         $this->ensureIsNotRateLimited();
 
-        if (! Auth::attempt($this->only('email', 'password'), $this->boolean('remember'))) {
+        $field = $this->isPhone() ? 'phone' : 'email';
+        $credentials = [
+            $field => $this->input('email'),
+            'password' => $this->input('password'),
+        ];
+
+        if (! Auth::attempt($credentials, $this->boolean('remember'))) {
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([

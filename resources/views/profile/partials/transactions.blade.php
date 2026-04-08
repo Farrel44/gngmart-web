@@ -122,9 +122,15 @@
                             <div class="flex items-center gap-3">
                                 {{-- Product Image --}}
                                 @if ($item->product && $item->product->images->first())
-                                    <img src="{{ Storage::url($item->product->images->first()->image_url) }}"
-                                         alt="{{ $item->product->name }}"
-                                         class="w-12 h-12 rounded-lg object-cover bg-gray-100 flex-shrink-0 border border-gray-100">
+                                    <div class="w-12 h-12 rounded-lg overflow-hidden relative bg-gray-100 flex-shrink-0 border border-gray-100">
+                                        <div class="absolute inset-0 skeleton-shimmer"></div>
+                                        <img src="{{ Storage::url($item->product->images->first()->image_url) }}"
+                                             alt="{{ $item->product->name }}"
+                                             class="w-full h-full object-cover relative z-10 transition-opacity duration-300"
+                                             style="opacity:0"
+                                             loading="lazy"
+                                             onload="this.style.opacity='1';this.previousElementSibling.remove()">
+                                    </div>
                                 @else
                                     <div class="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0 border border-gray-100">
                                         <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">

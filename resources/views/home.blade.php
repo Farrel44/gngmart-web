@@ -16,9 +16,14 @@
                      :class="activeSlide === {{ $index }} ? 'opacity-100 z-10' : 'opacity-0 z-0'">
 
                     {{-- Background image --}}
-                    <img src="{{ asset('storage/' . $slide->image_path) }}"
-                         alt="{{ $slide->title ?? 'Promo banner' }}"
-                         class="absolute inset-0 w-full h-full object-cover">
+                    <div class="absolute inset-0 overflow-hidden">
+                        <div class="absolute inset-0 skeleton-shimmer" x-show="!$el.parentElement.querySelector('img').complete" x-cloak></div>
+                        <img src="{{ asset('storage/' . $slide->image_path) }}"
+                             alt="{{ $slide->title ?? 'Promo banner' }}"
+                             class="w-full h-full object-cover transition-opacity duration-500"
+                             loading="{{ $index === 0 ? 'eager' : 'lazy' }}"
+                             onload="this.previousElementSibling?.remove()">
+                    </div>
 
                     {{-- Overlay gradient untuk keterbacaan teks --}}
                     <div class="absolute inset-0 bg-gradient-to-r from-black/60 via-black/30 to-transparent"></div>
@@ -141,9 +146,10 @@
         @endphp
 
         <div class="relative">
-            <img src="{{ $imageUrl }}"
-                 alt="{{ $product->name }}"
-                 class="h-32 w-full object-cover rounded-xl mb-4 bg-gray-200">
+            <x-lazy-image :src="$imageUrl"
+                          :alt="$product->name"
+                          class="h-32 w-full rounded-xl mb-4"
+                          img-class="w-full h-full object-cover" />
 
             {{-- Badge diskon jika ada promo aktif atau discount_price --}}
             @if($hasAnyDiscount)
@@ -240,10 +246,15 @@
 
         {{-- Image --}}
         @if($promoSlide->image_path)
-            <img src="{{ asset('storage/' . $promoSlide->image_path) }}"
-                 alt="{{ $promoSlide->title ?? 'Promo' }}"
-                 class="absolute right-0 top-0 h-full w-auto max-w-md
-                        object-cover rounded-2xl pointer-events-none">
+            <div class="absolute right-0 top-0 h-full w-auto max-w-md overflow-hidden">
+                <div class="absolute inset-0 skeleton-shimmer"></div>
+                <img src="{{ asset('storage/' . $promoSlide->image_path) }}"
+                     alt="{{ $promoSlide->title ?? 'Promo' }}"
+                     class="h-full w-auto object-cover rounded-2xl pointer-events-none relative z-10 transition-opacity duration-500"
+                     style="opacity:0"
+                     loading="lazy"
+                     onload="this.style.opacity='1';this.previousElementSibling.remove()">
+            </div>
         @endif
 
     </div>
